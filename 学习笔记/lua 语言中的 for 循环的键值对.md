@@ -20,7 +20,7 @@ end
 
 - 上方代码被执行的时候得到的结果是
 
-  ![image-20230406100023809](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161726394.png?token=AO67QCRZJTGA6UJLVZ4F3EDERQVPA)
+  ![image-20230406100023809](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161750860.png)
 
 
 
@@ -30,7 +30,7 @@ end
 >
 > 2. 泛型循环。
 >
->    ![image-20230406100258480](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161726395.png?token=AO67QCTXAQIPX3HTTBF2MJTERQVPA)
+>    ![image-20230406100258480](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161750861.png)
 
 
 
@@ -45,7 +45,7 @@ end
 
 > 测试结果如图，pairs 和 ipairs 的区别
 
-![image-20230406102710934](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161726396.png?token=AO67QCVZHOPHPM7G6ZKDZFLERQVPE)
+![image-20230406102710934](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161750862.png)
 
 当 ipairs( )  中的table 遇到 nil 类型的时候他就会停止for循环遍历
 
@@ -57,9 +57,9 @@ end
 
 > 关于pairs 的索引问题， ipairs 索引得连续
 
-![image-20230406103353437](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161726397.png?token=AO67QCQMVJ3IXDQQ7O47FQTERQVPG)
+![image-20230406103353437](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161750863.png)
 
-![image-20230406103615067](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161726398.png?token=AO67QCVEF4KFXQ5DIHH7V43ERQVPK)
+![image-20230406103615067](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161750864.png)
 
 如上图，不言而喻
 

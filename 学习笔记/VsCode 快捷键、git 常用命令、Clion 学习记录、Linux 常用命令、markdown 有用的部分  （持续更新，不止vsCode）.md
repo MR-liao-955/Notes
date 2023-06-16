@@ -2,7 +2,7 @@
 &emsp;&emsp;  vscode 快捷键， 如果要连续修改一个东西，可以找个相似的，然后ctrl+d 快速选择，同时进行添加
   1. `Ctrl+D` :快速选择，可以在一个字符串中选择后面多个相同的目标，同时进行修改。很常用
 
-     ![image-20230616112706879](https://raw.githubusercontent.com/MR-liao-955/Note/main/img/202306161127244.png?token=AO67QCRWOSWFP4KF5THJOMDERPLMY)
+     ![image-20230616112706879](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161751885.png)
 
      而且这个快捷键，可以选中光标前面 直至 上一个空格的字，就类似于鼠标点两下选中的高亮区域
 
