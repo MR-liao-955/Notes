@@ -5,8 +5,29 @@
 > 使用前先将wordpress 端口从80挪开
 
 - 原因：宿主机需要安装nginx 用来申请ssl。而之前wordpress 服务把80端口占用了。需要将它移走。
+
 - 遇到的问题：
-  1. docker 配置端口映射问题
+  1. docker 配置端口映射问题( 宿主机5000-> 容器80 )
+  
+     ```react
+     // 先暂停容器
+     docker stop w-wordpress
+     
+     // 进入容器所在的文件夹并修改端口映射
+     cd /var/lib/docker/containers/36e3e45f529e60050287a3526b5152668b68efb5f28c51a80147de7fc901b33a
+     
+     // 修改hostconfig.json 与 config.v2.json 文件
+     vim config.v2.json
+     // 使用 `/` 查找 `ExposedPort` 并修改里面的端口
+     "ExposedPorts":{"80/tcp":{}},  // 左边的就是容器内要暴露的端口。
+         
+         
+     
+     
+     ```
+  
+     
+  
   2. 端口访问wordpress 界面会被重新指向80端口。
 
 
