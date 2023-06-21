@@ -2,6 +2,8 @@
 
 #### 重新修改服务器设置
 
+![image-20230621160715465](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306211607281.png)
+
 > 使用前先将wordpress 端口从80挪开
 
 - 原因：宿主机需要安装nginx 用来申请ssl。而之前wordpress 服务把80端口占用了。需要将它移走。
