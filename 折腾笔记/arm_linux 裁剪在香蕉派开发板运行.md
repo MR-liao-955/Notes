@@ -237,7 +237,7 @@ Answer:
 
 - 香蕉派M3 官网  [香蕉派镜像官网](https://wiki.banana-pi.org/Banana_Pi_BPI-M3#Image_Release)
 
-  ![image-20230621105030786](E:/%E6%96%87%E6%A1%A3/GitHub%E7%AC%94%E8%AE%B0/Notes/%E6%8A%98%E8%85%BE%E7%AC%94%E8%AE%B0/arm_linux%20%E8%A3%81%E5%89%AA%E5%9C%A8%E9%A6%99%E8%95%89%E6%B4%BE%E5%BC%80%E5%8F%91%E6%9D%BF%E8%BF%90%E8%A1%8C.assets/image-20230621105030786.png)
+  ![image-20230621105030786](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230621105030786.png)
 
 
 
