@@ -64,6 +64,36 @@
 
 
 
+#### 端口迁移
+
+docker 端口重新映射之后导致图片访问不了。根据chatGPT 的方案，进行数据库的修改最终解决图片重命名的问题。( 注意：用该方法之前请务必备份 )
+
+1. 安装插件
+
+   ![image-20230703181634951](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703181634951.png)
+
+2. 修改数据表的内容（wp_posts 表中存放的是博客的文字性内容，以及别的。wp_postmeta 表中存放的可能是索引之类的）chatGPT 建议修改这2个表的内容。( 下方那个选项框是查找，如果取消勾选就是替换 )
+
+   ![image-20230703181817610](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703181817610.png)
+
+3. 此时图片就能正常显示了，但是还有一部分是博客依旧是ip地址显示，因此我们要去管理台设置新站点地址。
+
+   ![image-20230703182105802](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703182105802.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #### 使用certbot 申请ssl 证书
 
 ```react
@@ -123,11 +153,35 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
 
 
+#### Nginx 部分 把端口从80 映射到 5000
+
+- 设置5000端口为sll 访问同时80端口映射过去
+
+  ```bash
+  
+      listen [::]:443 ssl ipv6only=on; # managed by Certbot
+      listen 443 ssl; # managed by Certbot
+      ssl_certificate /etc/letsencrypt/live/dearl.top/fullchain.pem; # managed by Certbot
+      ssl_certificate_key /etc/letsencrypt/live/dearl.top/privkey.pem; # managed by Certbot
+      include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+      ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+  
+  
+  
+  }
+  
+  
+  
+  
+  
+  
+  ```
+
+  
 
 
 
-
-
+#### Docker 下的w-wordpress w-nextcloud容器开启ssl
 
 
 
