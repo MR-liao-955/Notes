@@ -450,6 +450,47 @@ net.ipv4.ip_forward=1
 
 
 
+- 提示CI/CD 部分提示错误信息
+
+  1. 在gitlab.rb 开启信息提示
+
+     ![image-20230705170608512](%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BApromox%20%E5%B9%B6%E5%AE%89%E8%A3%85ubuntu%20%E4%B8%8BGitlab%20%E6%9C%8D%E5%8A%A1.assets/image-20230705170608512.png)
+
+     ```bash
+     # 在/etc/gitlab/gitlab.rb 中添加一行配置信息
+     registry_external_url 'http://202.105.xxx.x:8266'
+     ```
+
+  2. 做了第一步之后，报错信息就更改为
+
+     ![image-20230705170827494](%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BApromox%20%E5%B9%B6%E5%AE%89%E8%A3%85ubuntu%20%E4%B8%8BGitlab%20%E6%9C%8D%E5%8A%A1.assets/image-20230705170827494.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -459,12 +500,17 @@ net.ipv4.ip_forward=1
   // 查找路由
   iptables -t nat -L -n --line-numbers
   
+  // 添加路由
+  
+  iptables -t nat -A POSTROUTING -s '10.10.10.11/24' -o vmbr0 -j MASQUERADE
+  iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 3000 -j DNAT --to 10.10.10.11:22
+  
   // 删掉路由 ( PREROUTING 可以改为POSTROUTING 之类的， 最后一位跟的是编号)
   iptables -t nat -D PREROUTING 6
   
   
   ```
-
+  
   
 
 

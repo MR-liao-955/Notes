@@ -2,8 +2,6 @@
 
 #### 重新修改服务器设置
 
-![image-20230621160715465](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306211607281.png)
-
 > 使用前先将wordpress 端口从80挪开
 
 - 原因：宿主机需要安装nginx 用来申请ssl。而之前wordpress 服务把80端口占用了。需要将它移走。
@@ -60,11 +58,11 @@
 
 > 配置wordpress 的apache2 的ssl ，配置nextcloud 的ssl
 
+[重磅！参考地址](https://www.jianshu.com/p/e8ae8bb1ad0a)
 
 
 
-
-#### 端口迁移
+#### 端口迁移（已完成）
 
 docker 端口重新映射之后导致图片访问不了。根据chatGPT 的方案，进行数据库的修改最终解决图片重命名的问题。( 注意：用该方法之前请务必备份 )
 
@@ -86,15 +84,7 @@ docker 端口重新映射之后导致图片访问不了。根据chatGPT 的方�
 
 
 
-
-
-
-
-
-
-
-
-#### 使用certbot 申请ssl 证书
+#### 使用certbot 申请ssl 证书（完成度80% 还差自动续签）
 
 ```react
 
@@ -153,24 +143,82 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
 
 
-#### Nginx 部分 把端口从80 映射到 5000
+#### Nginx 部分 把端口从80 映射到 5000( 已完成 )
 
 - 设置5000端口为sll 访问同时80端口映射过去
 
   ```bash
   
-      listen [::]:443 ssl ipv6only=on; # managed by Certbot
-      listen 443 ssl; # managed by Certbot
-      ssl_certificate /etc/letsencrypt/live/dearl.top/fullchain.pem; # managed by Certbot
-      ssl_certificate_key /etc/letsencrypt/live/dearl.top/privkey.pem; # managed by Certbot
-      include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-      ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
   
   
   
+  
+  ```
+  
+  
+
+
+
+#### Docker 下的w-wordpress w-nextcloud容器开启ssl（施工中）
+
+- docker 容器内修改软件源并安装vim 编辑器
+
+  ```bash
+  // 查看系统的镜像内容
+  root@kuboard-5967d77d89-h2hgn:/# cat /etc/issue
+  Debian GNU/Linux 10 \n \l
+  
+  // 更新软件源 apt update (国外源，慢，但是没办法)
+  
+  
+      
+  // 主机地址
+  ssl_certificate /etc/letsencrypt/live/dearl.top/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/dearl.top/privkey.pem; # managed by Certbot
+  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+  
+  
+  # 容器内地址
+  /var/www/html/my_ssl/fullchain.pem
+  /var/www/html/my_ssl/privkey.pem
+  
+  
+  # 容器间拷贝
+  docker cp /etc/letsencrypt/live/dearl.top/fullchain.pem w-wordpress:/
+  
+  docker cp /etc/letsencrypt/live/dearl.top/fullchain.pem w-wordpress:/
+  
+  修改的地址： /etc/apache2/sites-available/default-ssl.conf
+  ```
+
+  【该方法我只在测试ubuntu 上完成过，公钥和私钥都是阿里云等申请的正式公私钥】
+
+![image-20230706152429354](%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8ssl%20+%20%E5%9F%9F%E5%90%8D%E5%AE%89%E5%85%A8%E8%AE%BF%E9%97%AE.assets/image-20230706152429354.png)
+
+
+
+
+
+- 目前想到的合适的办法
+
+  外层Nginx 作为443端口的接收，将接收到的请求通过http 转发给docker 的wordpress 容器的apache2 的80端口。
+
+  也就是：外部使用https 加密，内部使用http
+
+  ```bash
+  // gitlab曾用过的nginx 设置
+  server {
+      listen       8022;  #原作者的 gitlab 一般使用 8022 端口访问
+      server_name  localhost;
+  
+      location / {
+          root  html;
+          index index.html index.htm;
+          proxy_pass http://127.0.0.1:8021; #这里与前面设置过的端口一致
+      }
   }
-  
-  
+  // 设置nginx 代理到目标地址
   
   
   
@@ -181,7 +229,78 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
 
 
-#### Docker 下的w-wordpress w-nextcloud容器开启ssl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 遇到的问题：
+
+- 如果在网页后台站点地址被误操作更改。那就只能去服务器修改数据库的内容了。
+
+  > 参考地址：https://cuijiahua.com/blog/2017/10/website_1.html
+
+  `docker exec -it w-mysql bash`   ==★== 进入docker 容器
+
+  `USE wordpress;`   ==★== 使用wordpress 数据库
+
+  `select * from wp_options limit 20;`  ==★== 查找数据表
+
+  ![image-20230705113717048](%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8ssl%20+%20%E5%9F%9F%E5%90%8D%E5%AE%89%E5%85%A8%E8%AE%BF%E9%97%AE.assets/image-20230705113717048.png)
+
+  `UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="siteurl";` ==★== 修改数据表内容
+
+```bash
+
+# temp
+
+UPDATE wp_options SET option_value="https://gitlab.qiot.cn:8269" WHERE option_name="siteurl";
+
+
+```
+
+
+
+- https 证书绑定完成，但是
+
+
+
+- Nginx 学习
+
+  ```c
+  
+  "ExposedPorts":{"80/tcp":{},"443/tcp":{}},
+  
+  
+  {"80/tcp":[{"HostIp":"","HostPort":"5000"}],"443/tcp":[{"HostIp":"","HostPort":"4999"}]}
+  
+  
+  ```
+  
+  
+
+
+
+![image-20230710161419274](%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8ssl%20+%20%E5%9F%9F%E5%90%8D%E5%AE%89%E5%85%A8%E8%AE%BF%E9%97%AE.assets/image-20230710161419274.png)
+
+
+
+- 更新docker 版本
+  1. 先备份/var/lib/docker  --> /var/lib/docker-bak
+  2. https://cloud.tencent.com/developer/article/2195198   安装新版docker-ce
+  3. https://www.jianshu.com/p/9261f29ea64a   处理掉使用docker 命令的报错异常
+  4. https://zhuanlan.zhihu.com/p/422427865    恢复原来镜像
+
+
 
 
 
