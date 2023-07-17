@@ -24,7 +24,7 @@
 
   ubuntu 系统版本 （更新国内源就不再赘述）
 
-  ![image-20230706104600219](PostFix%20%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B.assets/image-20230706104600219.png)
+  ![image-20230706104600219](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307171022956.png)
 
   1. 安装docker 本体，`apt-get install docker docker-compose -y`
   2. 拉取postfix 镜像，
