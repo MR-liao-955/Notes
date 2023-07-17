@@ -306,6 +306,28 @@ apt-get install php-imap php-mbstring php-fpm php-mysql php-sqlite3 php-cli php-
 
 
 
+- nginx 的问题
+
+  ```bash
+  
+  # 当启动nginx 报错时，很有可能是端口被占用
+  nginx -t  # 测一下nginx 配置文件是否有错
+  
+  #查看端口被占用情况，哪怕nginx 占用了端口都应该kill 掉
+  sudo netstat -tulnp | grep -E '(:80|:443)' 
+  
+  # 清理掉占用端口的进程
+  kill PID
+  
+  
+  ```
+
+  
+
+
+
+
+
 postconf -e virtual_mailbox_domains=mysql:/etc/postfix/sql/mysql_virtual_domains_maps.cf
 
 postmap -q dearl.top mysql:/etc/postfix/sql/mysql_virtual_domains_maps.cf
@@ -329,22 +351,60 @@ postmap -q dearl@dearl.top mysql:/etc/postfix/sql/mysql_virtual_alias_maps.cf
 
 ```bash
 
-smtpd_sasl_type=dovecot
-smtpd_sasl_path=private/auth
-smtpd_sasl_auth_enable=yes
-smtpd_sasl_security_options=noanonymous
-smtpd_sender_restrictions=permit_sasl_authenticated
 
-smtpd_recipient_restrictions=permit_mynetworks permit_sasl_authenticated permit_auth_destination reject_unauth_destination
 
-maildir:/opt/vmail/mailbox/%d/%n
 
+# 添加邮箱过时自动删除策略
+vim /etc/dovecot/conf.d/15-mailboxes.conf
+####################################################################################
+namespace inbox {
+  mailbox Drafts {
+    special_use = \Drafts
+  }
+  mailbox Junk {
+    special_use = \Junk
+    autoexpunge = 30d
+  }
+  mailbox Trash {
+    special_use = \Trash
+    autoexpunge = 30d
+  }
+  mailbox Sent {
+    special_use = \Sent
+  }
+  mailbox "Sent Messages" {
+    special_use = \Sent
+  }
+}
+####################################################################################
+
+
+# 授权
+
+
+
+
+
+
+
+作者: ZhongJin
+链接: https://zhongjin.io/2022/09/03/IT%E6%8A%80%E6%9C%AF/%E8%BF%90%E7%BB%B4/%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD/%E9%82%AE%E4%BB%B6%E7%B3%BB%E7%BB%9F%E6%90%AD%E5%BB%BA%E4%B9%8BPostfix-Dovecot-Postfixadmin/index.html
+来源: ZhongJin's Blog
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 
 ```
 
 
 
 useradd -r -u 5000 -g vmail -d /opt/vmail -s /sbin/nologin -c "Virtual Mail User" vmail
+
+
+
+
+
+- 日志文件保存在 /varl/log/mail.log 中
+
+
 
 
 
