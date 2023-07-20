@@ -454,7 +454,7 @@ net.ipv4.ip_forward=1
 
   1. 在gitlab.rb 开启信息提示
 
-     ![image-20230705170608512](%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BApromox%20%E5%B9%B6%E5%AE%89%E8%A3%85ubuntu%20%E4%B8%8BGitlab%20%E6%9C%8D%E5%8A%A1.assets/image-20230705170608512.png)
+     ![image-20230705170608512](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307201405241.png)
 
      ```bash
      # 在/etc/gitlab/gitlab.rb 中添加一行配置信息
@@ -463,29 +463,7 @@ net.ipv4.ip_forward=1
 
   2. 做了第一步之后，报错信息就更改为
 
-     ![image-20230705170827494](%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BApromox%20%E5%B9%B6%E5%AE%89%E8%A3%85ubuntu%20%E4%B8%8BGitlab%20%E6%9C%8D%E5%8A%A1.assets/image-20230705170827494.png)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+     ![image-20230705170827494](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307201405242.png)
 
 
 
