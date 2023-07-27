@@ -70,7 +70,7 @@
 
 - 关于mailu 证书的问题
 
-  ![image-20230720111005846](PostFix%20%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B.assets/image-20230720111005846.png)
+  ![image-20230720111005846](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307271837137.png)
 
   &emsp;&emsp;之前我选择的cert 选项，而且我并没有放置证书到相应地址，导致我的`mailu` 的web 界面没打开同时使得我采用了别的办法，比如`Postfix + Postfixadmin + sqlite + Dovecot `来搭建邮件服务器。使用postfix 搭建遇到配置上的问题，使得只能发邮件，而收件箱没找到邮件，它也没有收件箱管理的web ，因此很难排错。
 
@@ -88,11 +88,11 @@
   之后按照官方给的教程  把证书文件放在 宿主机 /mailu/certs
   ```
 
-  ![image-20230720112331103](PostFix%20%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B.assets/image-20230720112331103.png)
+  ![image-20230720112331103](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307271837138.png)
 
-  ![image-20230720112410162](PostFix%20%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B.assets/image-20230720112410162.png)
+  ![image-20230720112410162](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307271837139.png)
 
-  ![](PostFix%20%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B.assets/image-20230720112122082.png)
+  ![](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307271837140.png)
 
 - 关于端口问题，如上图的ports 端口映射，该端口必须得是你宿主机的端口，而不是任意端口都能访问。尽量别设置成`0.0.0.0` ，防止局域网别的主机被黑导致邮件服务器出问题
 
@@ -123,7 +123,7 @@
 openssl rsa -in privatekey.key -outform PEM -out key.pem
 
 # Linked Website URL 尽量选择 mail.xxxx.cn 因为公司xxxx.cn 是官网，所以得用mail.xxxx.cn
-# 实际上mail.xxxx.cn 也只是发邮件用， web 界面我们使用 https://gitlab.xxxx.cn:xxxx 来访问
+# 实际上mail.xxxx.cn 也只是发邮件用， web 界面我们使用 https://xxxxx.xxxx.cn:xxxx 来访问
 
 # 记得勾选 antivirus 和 webdav 服务，防病毒和web 界面
 
