@@ -40,7 +40,7 @@
 
 
 
-> 将申请的ssl 证书 映射到服务器里面( 共享文件夹的方式 )
+> 将申请的ssl 证书 映射到服务器里面( 共享文件夹的方式 )  只要解决这一部分，我认为后续容器内部使用ssl 就不会存在问题
 
 - wordpress 容器的处理
   1. 进入 wordpress 容器  `docker exec -it w-wordpress bash` 
@@ -149,8 +149,10 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
   ```bash
   
+  #   //temp
+  add_filter('script_loader_src', 'agnostic_script_loader_src', 20,2); function agnostic_script_loader_src($src, $handle) { return preg_replace('/^(http|https):/', '', $src); } 
   
-  
+  add_filter('style_loader_src', 'agnostic_style_loader_src', 20,2); function agnostic_style_loader_src($src, $handle) { return preg_replace('/^(http|https):/', '', $src); }
   
   
   ```
@@ -160,6 +162,14 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
 
 #### Docker 下的w-wordpress w-nextcloud容器开启ssl（施工中）
+
+##### 弃用方法1 ( 浏览器和服务器的nginx 之间使用443端口设置 https )
+
+
+
+
+
+
 
 - docker 容器内修改软件源并安装vim 编辑器
 
@@ -208,28 +218,100 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
   ```bash
   // gitlab曾用过的nginx 设置
+  vi /etc/nginx/sites-available/wordpress.evolute.in
+  
   server {
-      listen       8022;  #原作者的 gitlab 一般使用 8022 端口访问
+      listen       443;  #原作者的 gitlab 一般使用 8022 端口访问
       server_name  localhost;
   
       location / {
           root  html;
           index index.html index.htm;
-          proxy_pass http://127.0.0.1:8021; #这里与前面设置过的端口一致
+          proxy_pass http://127.0.0.1:5000; #这里与前面设置过的端口一致
       }
   }
-  // 设置nginx 代理到目标地址
+  // 与nginx 进行连接
+  cd /etc/nginx/sites-enabled
+  sudo ln -s /etc/nginx/sites-available/wordpress.evolute.in wordpress.evolute.in
   
-  
+  sudo nginx -s reload
   
   
   ```
-
   
 
 
 
 
+
+
+
+temp
+
+```bash
+
+proxy_pass http://127.0.0.1:5000;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+
+
+
+location / {
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+             proxy_set_header Host $host;
+             proxy_pass http://dearl.top:5000;
+             proxy_redirect off;
+
+
+
+location / {
+                proxy_pass http://dearliao;
+                proxy_set_header    REMOTE-HOST $remote_addr;
+                proxy_set_header   Host $host;
+                proxy_set_header   X-Real-IP $remote_addr;
+                proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+
+}
+
+
+```
+
+```bash
+
+upstream dearliao{
+        server 127.0.0.1:5000;
+}
+server {
+        listen 80;
+        server_name dearl.top;
+        return 301 https://$server_name$request_uri;
+}
+server {
+   root /var/www/html;
+        # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+    server_name dearl.top www.dearl.top; # managed by Certbot
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    server_name dearl.top www.dearl.top;
+    ssl_certificate /etc/letsencrypt/live/dearl.top/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dearl.top/privkey.pem; # managed by Certbot
+    location / {
+                proxy_pass http://dearliao;
+                proxy_set_header   Host $host;
+                proxy_set_header   X-Real-IP $remote_addr;
+                proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+
+
+
+```
 
 
 
@@ -265,6 +347,9 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
 
 UPDATE wp_options SET option_value="https://gitlab.qiot.cn:8269" WHERE option_name="siteurl";
 
+
+UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="siteurl";
+UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="home";
 
 ```
 

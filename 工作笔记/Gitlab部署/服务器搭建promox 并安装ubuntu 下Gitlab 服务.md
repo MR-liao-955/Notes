@@ -491,9 +491,68 @@ net.ipv4.ip_forward=1
   
   
 
+- **安全加固 fail2ban 限制登录失败次数**
 
+  [参考地址](https://www.myfreax.com/install-configure-fail2ban-on-ubuntu-20-04/)
 
+  ```bash
+  sudo apt-get udpate
+  apt-get install fail2ban
+  
+  # 复间conf 复制成local
+  sudo cp /etc/fail2ban/jail.{conf,local}
+  
+  # 查看 ssh 服务被ban 的ip 地址
+  fail2ban-client status sshd
+  
+  # 解除该IP 的限制
+  sudo fail2ban-client set sshd unbanip 23.34.45.56
+  
+  
+  # 在 /etc/fail2ban/jail.local 中修改参数
+  [sshd]
+  enabled   = true
+  port    = 65533
+  logpath = %(sshd_log)s
+  backend = %(sshd_backend)s
+  
+  # 每次修改完记得重启
+  systemctl restart fail2ban
+  
+  ```
 
+  > 加固proxmox 自定义过滤器的防护
+
+  ```bash
+  # 在 /etc/fail2ban/jail.local 中添加服务
+  [proxmox]
+  enabled = true
+  port = 8006
+  filter = proxmox
+  logpath = /var/log/daemon.log
+  maxretry = 6
+  findtime = 600
+  bantime = 3600
+  
+  # 设置 过滤规则 proxmox
+  ## 在/etc/fail2ban/filter.d/ 中创建 proxmox.conf 文件
+  vim /etc/fail2ban/filter.d/proxmox.conf
+  
+  ## 添加规则
+  [Definition]
+  failregex = pvedaemon\[.*authentication failure; rhost=<HOST> user=.* msg=.*
+  ignoreregex =
+  
+  
+  ## 解释：在proxmox 的日志中找到匹配authentication failure 的字段，并得到它的IP 地址，然后让这个IP坐牢jail
+  
+  # 重新启动服务 让它生效
+  systemctl restart fail2ban
+  ```
+
+  
+
+  
 
 ### 登录信息
 
