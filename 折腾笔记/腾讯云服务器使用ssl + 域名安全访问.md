@@ -467,29 +467,41 @@ sudo crontab -l
 
 - 按照如上做法就能访问到nextcloud ，但是会有一个报错
 
-  ![image-20230728183955269](%E8%85%BE%E8%AE%AF%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8ssl%20+%20%E5%9F%9F%E5%90%8D%E5%AE%89%E5%85%A8%E8%AE%BF%E9%97%AE.assets/image-20230728183955269.png)
+  ![image-20230728183955269](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307310949059.png)
 
   https://hellodk.cn/post/598
 
+  [最终参考地址](https://www.orcy.net.cn/2928.html)
+
   ```bash
   
+  # 进入docker 的nextcloud 容器内部
+  docker exec -it w-nextcloud bash
   
+  # 进入 /var/www/html/config 目录 并修改config.php 配置文件
+  vim /var/www/html/config/config.php
   
+  # 在trusted_domains 中的array 数组中添加(参考如下修改)
+      'trusted_domains' =>
+      array (
+        0 => 'http://dearl.top:5001',
+        1 => 'https://dearl.top:5001',
+      ),
+      
+  # overwrite.cli.url 修改(添加)为
   
+    'overwrite.cli.url' => 'https://dearl.top:5001',
+    
+  # overwriteprotocol 修改(添加)为
+    'overwriteprotocol' => 'https',
   
+  # overwritehost 修改(添加)为
+    'overwritehost' => 'dearl.top:5001',
   
-  
-  
-  
+  ##### 此时就能正常https 访问nextcloud 了
   ```
 
   
-
-
-
-
-
-
 
 ### 遇到的问题：
 
@@ -521,25 +533,16 @@ UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="ho
 
 
 
-- https 证书绑定完成，但是
-
-
-
 - Nginx 学习
 
   ```c
   
   "ExposedPorts":{"80/tcp":{},"443/tcp":{}},
   
-  
   {"80/tcp":[{"HostIp":"","HostPort":"5000"}],"443/tcp":[{"HostIp":"","HostPort":"4999"}]}
-  
   
   ```
   
-  
-
-
 
 ![image-20230710161419274](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307281821363.png)
 
@@ -555,33 +558,9 @@ UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="ho
 
 
 
-```bash
-, ‘agnostic_script_loader_src', 20,2); function agnostic_script_loader_src($src, $handle) { return preg_replace(‘/^(http|https):/’, ”, $src); }
-add_filter(‘style_loader_src’, ‘agnostic_style_loader_src’, 20,2); function agnostic_style_loader_src($src, $handle) { return preg_replace(‘/^(http|https):/’, ”, $src); }
-
-```
 
 
 
-
-
-
-
-```bash
-
-
-add_filter('script_loader_src', 'agnostic_script_loader_src', 20,2);
-function agnostic_script_loader_src(src,handle) {
-    return preg_replace('/^(http|https):/', '', src);
-}
-
-add_filter('style_loader_src', 'agnostic_style_loader_src', 20,2);
-function agnostic_style_loader_src(src, handle) {
-    return preg_replace('/^(http|https):/', '',src);
-}
-
-
-```
 
 
 
