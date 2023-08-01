@@ -52,20 +52,20 @@ docker 端口重新映射之后导致图片访问不了。根据chatGPT 的方�
 
 1. 安装插件 `Better Search Replace`
 
-   ![image-20230703181634951](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703181634951.png)
+   ![image-20230731143018210](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431943.png)
 
 2. 修改数据表的内容（wp_posts 表中存放的是博客的文字性内容，以及别的。wp_postmeta 表中存放的可能是索引之类的）chatGPT 建议修改这2个表的内容。( 下方那个选项框是查找，如果取消勾选就是替换 )
    **破案了：全部的表都给它换掉**
 
-   ![image-20230703181817610](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703181817610.png)
+   ![image-20230731143023542](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431944.png)
 
 3. 此时图片就能正常显示了，但是还有一部分是博客依旧是ip地址显示，因此我们要去管理台设置新站点地址。
 
-   ![image-20230703182105802](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/image-20230703182105802.png)
+   ![image-20230731143030989](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431945.png)
 
 
 
-#### 使用certbot 申请ssl 证书（完成度80% 还差自动续签）
+#### 使用certbot 申请ssl 证书（已完成）
 
 ```react
 
@@ -355,13 +355,15 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
     
     ```
 
-    ![img](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307281821361.webp)
+    ![image-20230731143059070](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431949.png)
+
+    ![img](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431946.webp)
 
   - Nginx 跳转部分 （这一部分我还没具体做，不过都已经做到此处了，想必这里已经不是难事了）
-
+  
     [参考地址1 `海滨擎蟹` 的博客](https://www.seasidecrab.com/server/991.html)
     [参考地址2 `海滨擎蟹`的博客](https://www.seasidecrab.com/server/939.html)
-
+  
     ```bash
     # 大致按着下面改吧， 参考gitlab 当时做的
     cd /etc/nginx/sites-available
@@ -388,7 +390,7 @@ docker container update --mount-add type=bind,source=/etc/letsencrypt/live/dearl
     ```
 
   
-
+  
   
 
 #### 创建定时任务，每个月1号凌晨3点执行一次所有域名自动续期的操作
@@ -401,7 +403,8 @@ sudo crontab -e
 
 ## 然后选2，习惯使用vim 编辑器
 
-# 在最后添加一行
+# 在最后添加一行  
+##该 cron 表达式的含义是：每个月的 1 日凌晨 3 点执行 /home/certbot-auto renew --renew-hook "sudo nginx -s reload" 这个命令。
 0 3 1 * * /home/certbot-auto renew --renew-hook "sudo nginx -s reload"
 
 # 检查命令是否添加成功
@@ -409,7 +412,19 @@ sudo crontab -l
 
 ```
 
+- 到每个月1号过后验证该命令是否执行
 
+  ```bash
+  
+  # 验证命令行 grep "certbot-auto renew" /var/log/syslog
+  root@VM-8-11-ubuntu:/etc/letsencrypt/archive/dearl.top# grep "certbot-auto renew" /var/log/syslog
+  
+  ##得到信息 
+  Aug  1 03:00:01 localhost CRON[10661]: (root) CMD (/home/certbot-auto renew --renew-hook "sudo nginx -s reload")
+  root@VM-8-11-ubuntu:/etc/letsencrypt/archive/dearl.top#
+  ```
+
+  
 
 #### Nextcloud 使用HTTPS
 
@@ -467,7 +482,7 @@ sudo crontab -l
 
 - 按照如上做法就能访问到nextcloud ，但是会有一个报错
 
-  ![image-20230728183955269](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307310949059.png)
+  ![image-20230731143047625](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431947.png)
 
   https://hellodk.cn/post/598
 
@@ -501,6 +516,23 @@ sudo crontab -l
   ##### 此时就能正常https 访问nextcloud 了
   ```
 
+- 如果对于nextcloud 上传报错，'未知的错误' 时，但是能下载云盘中的文件。这时候应当考虑是Nginx 阻止了大文件的下载。
+
+  ```bash
+  # 这时候应该去nginx 中添加设置文件大小的配置行
+  # 比如如下路径
+  vim /etc/nginx/sites-available/nextcloud.evolute.in
+  
+  # 在location 下面添加如下配置行
+  client_max_body_size 10240M;
+  
+  # 当然也可以设置到其它地方但作用域不一样。
+  --- 设置到http{}内，控制全局nginx所有请求报文(附件)大小；
+  --- 设置到server{}内，控制该server的所有请求报文(附件)大小；
+  --- 设置到location{}内，只控制满足该路由规则的请求报文(附件)大小。
+  
+  ```
+
   
 
 ### 遇到的问题：
@@ -515,12 +547,11 @@ sudo crontab -l
 
   `select * from wp_options limit 20;`  ==★== 查找数据表
 
-  ![image-20230705113717048](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307281821362.png)
+  ![image-20230731143053289](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202307311431948.png)
 
   `UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="siteurl";` ==★== 修改数据表内容
 
 ```bash
-
 # temp
 
 UPDATE wp_options SET option_value="https://gitlab.qiot.cn:8269" WHERE option_name="siteurl";
@@ -530,21 +561,6 @@ UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="si
 UPDATE wp_options SET option_value="http://dearl.top:5000" WHERE option_name="home";
 
 ```
-
-
-
-- Nginx 学习
-
-  ```c
-  
-  "ExposedPorts":{"80/tcp":{},"443/tcp":{}},
-  
-  {"80/tcp":[{"HostIp":"","HostPort":"5000"}],"443/tcp":[{"HostIp":"","HostPort":"4999"}]}
-  
-  ```
-  
-
-![image-20230710161419274](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307281821363.png)
 
 
 
