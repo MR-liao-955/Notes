@@ -48,7 +48,15 @@
 14. `ifconfig `  :- 查看网络信息
 15. `sudo ln -s /etc/nginx/sites-available/lam.evolute.in lam.evolute.in `  :- 这里的案例表示把lam.evolute.in 连接到当前的文件夹里面(要先cd 到待连接的地方)。
 16. `netstat -anp | grep 3306 `  :- 查看端口3306被占用情况
-16.TODO:///////// curl   ----   bash    ----  wget ---yum  等命令待整理
+17. `curl -L http://url -o /path/fileName.tar.gz` :- 下载东西到本地，并以fileName.tar.gz 等方式保存
+18. `find ./Document -name Search* ` :-  在相对路径./Document 中查找 Search 开头的文件
+19. `iptables -L -t nat` :- 查看NAT 的状态，详情请看proxmox 章节以及添加路由的命令
+20. `sz    &&   rz` :- 'apt-get install lrzsz'  命令特别有用方便传输东西。
+21. `lsof -i :80 && kill -9 PID` :- 查找80端口被谁占用， kill 干掉该端口的进程
+22. `du -h fileName` :- 查看fileName 文件/文件夹 所占用的大小
+23. `tar -xvf abc.tar.gz` :- 解压文件，当然不同的压缩方式解压命令可能不同
+24. 
+25. 16.TODO:///////// curl   ----   bash    ----  wget ---yum  等命令待整理
 
 
 ```react
@@ -79,7 +87,24 @@ chmod +x 文件名
 
 // iptables 添加路由部分 请查看部署gitlab 文档章节
 
+// 修改登录界面样式
+vim /etc/motd
+/*
+            #############################
+            #                           #
+            #     道路千万条，安全第一条。  #
+            #     删库一时爽，亲人两行泪！  #
+            #                           #
+            #############################
 
+  |\_/|     *****************************    (\_/)
+ / @ @ \    *                           *   (='.'=)
+( > º < )   *       莫删库，删库必被抓！    *   (")_(")
+ `>>x<<     *                           *
+ /  O  \    *****************************
+*/
+
+// 
 
 
 ```
@@ -116,6 +141,45 @@ return $text;
 }
 add_filter(‘the_content’, ‘replace_text_wps’);
 add_filter(‘the_excerpt’, ‘replace_text_wps’);
+
+```
+
+
+
+#### docker 常用部分
+
+```bash
+# 使用docker 拉取容器 
+docker pull
+
+# 查看docker 正在运行的容器
+docker ps -a
+docker stop w-wordpress
+docker start w-wordpress
+docker restart w-wordpress
+
+# 执行docker 新的容器 并连接到数据库，映射文件，映射端口
+docker run --name w-wordpress --link w-mysql:db -v /root/docker/wordpress/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini  -p 80:80  -d wordpress:latest
+
+# 进入容器内部
+docker exec -it w-wordpress bash  # w-wordpress 可以用容器名字的一部分代替
+
+# docker compose启动mailu 服务器的命令
+docker compose -p mailu up -d
+
+# 容器 / 宿主机之间拷贝文件命令  从左边拷贝到右边，下面这是容器拷贝到宿主机。反之亦然
+docker cp w-wordpress:/root /var/www/html/mypathOrFile
+
+# docker compose 清除容器(根据docker-compose.yml 里面的内容来清除) ，容器清除了，但下次up 的时候之前的容器里面的东西还在，也就是没有在硬盘上清除。
+docker compose down
+
+# 在已up 的容器中修改宿主机和容器的映射，请看下方的章节提醒
+腾讯云服务器使用ssl + 域名安全访问(wordpress + nextcloud + certbot->letsencrypt)
+主要内容是修改 /var/lib/docker/container/容器ID/ 路径下 hostconfig.json 和 config.v2.json 文件
+
+# 查找docker 容器库
+docker search nextcloud
+
 
 ```
 
