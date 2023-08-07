@@ -200,6 +200,15 @@ git batch  TODO:////
 在C盘 的用户文件夹的.shh 中右键 Git Bash here,然后执行
 ssh-keygen -t rsa -C "dearl@qq.com"
 
+//4. 上传一条龙命令
+git pull
+git status
+git add .
+git commit -m "updateMessage"
+git push
+
+
+
 
 ```
 
@@ -209,8 +218,8 @@ ssh-keygen -t rsa -C "dearl@qq.com"
 ```react
 1. 写笔记个人喜欢用 ```react   ``` 这种代码风格
 
-2.    是输出中文字符的空格，正常情况下markdown 不能输出空格、
-      是输出英文字符的空格。
+2. &emsp;是输出中文字符的空格，正常情况下markdown 不能输出空格、
+  &emsp;是输出英文字符的空格。
 
 3. ~~删除线~~ 
 

@@ -1,4 +1,4 @@
-### 手动裁剪一个Linux 系统，步骤记录。
+### 手动裁剪一个Linux 系统，步骤记录。(未完成)
 
 **写作目的：**
 
@@ -33,7 +33,7 @@
 1. 加深对Linux 的理解，
 2. 裁剪合适的功能，未来开发会更有帮助。
 3. 对编译不再害怕，哪怕跨平台的编译。
-4. 熟悉xmake 或者 cmake 或者 arm-gcc-gnu-eabi 的使用。
+4. 熟悉xmake 或者 cmake 或者 交叉编译环境 的使用。
 
 
 
@@ -51,10 +51,6 @@
   ```
   
   
-
-
-
-
 
 #### 准备工作
 
@@ -82,17 +78,9 @@
   tar -xvf linux-5.1.2.tar.gz
   
   
-  
-  
   ```
-
   
-
-
-
-
-
-
+  
 
 #### 关于一些概念
 
@@ -128,7 +116,7 @@
 
 [参考博客地址](http://conanwhf.github.io/2017/06/12/bootup-4-kernel/)
 
-&emsp;&emsp;这个问题太基础，只是因为跟手动跑系统有关，所以稍微提一下。kernel编译后的成果是zImage，uImage只是添加了一个长度为0x40的头，用来记录给uboot的相关信息。虽然uImage是专门给uboot用的，但uboot的启动并不一定要uImage，它既可以接受uImage也可以接受zImage。可以说：uImage的头信息本质上是一种启动参数的传递形式。
+&emsp;&emsp;kernel编译后的成果是zImage，uImage只是添加了一个长度为0x40的头，用来记录给uboot的相关信息。虽然uImage是专门给uboot用的，但uboot的启动并不一定要uImage，它既可以接受uImage也可以接受zImage。可以说：uImage的头信息本质上是一种启动参数的传递形式。
 &emsp;&emsp;制作uImage的工具是**mkimage**，它是来自于uboot。为了避免各种可能的版本问题，建议直接使用uboot编译后的`uboot/tools/mkimage`。而uImage的制作脚本则包含在kernel的编译脚本中，使用命令：
 `make uImage LOADADDR=0x80008000`
 即可编译获得uImage，前提是你已经将mkimage放入了编译环境的/bin/文件夹下。LOADADDR是kernel的启动地址（**注意，这不是真正的kernel运行地址**），uBoot会将kernel拷贝到此地址后（实际中也可能不拷贝）执行。关于uboot使用的几个内存地址的具体讲解也很多，这么些年也没什么变化，需要了解的可以自行去搜索。
@@ -150,6 +138,59 @@
 ```
 
 
+
+##### 编译Linux 的uImage 内核镜像时对于LOADADDR 扩展的思考
+
+- 起因：我想编译uImage 内核，并使用u-boot 引导，但是uImage 比zImage 头部多一个LOADADDR 的内存地址，但是我翻芯片手册没翻到。
+  1. u-boot 初始化硬件设备CPU、内存控制器、外设等
+  2. u-boot 从存储介质( Flash,SD卡，网络等 ) 方式加载Linux 内核镜像和设备树到RAM 中
+  3. 再然后加载设备树，( 我的理解：在主控芯片之外的 开发板的信息保存到RAM 中，让芯片知道 '电脑' 的配置情况 )。然后将设备树的地址传递给内核
+  4. 加载内核，u-boot 会跳转到u-boot 内核的入口，并将设备树的地址和其它启动参数传递给内核。
+  5. Linux 内核的初始化，即为编译过内核的驱动或者别的，u-boot  的使命完成剩下的交给Linux 了。
+
+
+
+- 关于RAM 的地址映射 和内存大小的思考
+
+  ![image-20230803112957125](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037008.png)
+
+  &emsp;&emsp;上图为STM32F407 的Memory mapping，从地址-x4000 0000 到0xA000 0FFF 的地址区间，通过计算，可以转化为。**0xA000 0FFF - 0x4000 0000 = 0x6000 0FFF = 1610616831 (byte) = 1536 (MB) ≈ 1.5(GB)** 
+
+  &emsp;&emsp;显然作为一款单片机目前不可能有1.5GB 的内存，**而这些地址范围只是代表处理器的地址空间，并非实际的物理内存的大小。**
+
+  &emsp;&emsp;STM32F407 ( Flash memory up to 1 Mbyte, up to 192 Kbytes of SRAM ) ，但是上图这个逻辑地址表明STM32F407 支持最大的内存，也就是外挂的内存。实际上面的最高地址 0x0 -> 0xFFFF FFFF 可转化为4GB
+
+
+
+- 关于扩展的RAM 和芯片内部的RAM 的理解
+
+  > 对于CortexM4 架构和 CortexA7 架构的初略认识。
+
+  1. 以STM32F407ZGT6 为例架构为CortexM4，它的Memory mapping 分为APB1,APB2,AHB1,AHB2,AHB3,Reserved,CORTEX-M4 internal perpherals 等区域。
+
+  2. CortexA7 根据chatGPT 回答
+
+     AXI 总线：高性能外设和高速 RAM（如 DDR RAM）通常连接到 AXI 总线上，这样可以实现较高的数据传输速率。
+
+     AHB 总线：低速 RAM、SRAM、Flash 存储器以及其他较低性能的外设通常连接到 AHB 总线上。
+
+     APB 总线：较低速度的外设（如串口、GPIO 控制器等）通常连接到 APB 总线上。
+
+     Cortex-A7 系列的芯片的内存分布是更为灵活和复杂的，因为它们通常用于更多复杂的应用，有更高的性能要求。
+
+  > BananaPi M3 拥有2GB ram、8GB emmc 的理解
+  >
+  > [参考地址](https://www.yiboard.com/thread-725-1-1.html)
+
+  &emsp;&emsp;对于高性能的芯片，作为用户级的处理器，应当支持多样性的定制，类似于树莓派4B 那种，2G、4G、8G内存的定制，同时也可以把emmc 这类存储和内存的设计原理关联起来。
+
+  &emsp;&emsp;要使用LOADADDR 需要找一个没有被用过的内存空间( 绕开APB AHB... 系统外设占用的RAM )，
+
+  
+
+- 关于LOADADDR 的一部分理解
+
+  理论上说只要LOADADDR 设置的地址和芯片各类 总线/寄存器 的地址不冲突，LOADADDR的地址可以随意。具体看芯片手册，但是。。全志A83T 的芯片像是传家宝一样，根本找不到有用的手册
 
 
 
@@ -179,6 +220,10 @@ Answer:
 
 - 安装arm 交叉编译环境
 
+  [Linux 内核各个版本下载地址](https://cdn.kernel.org/pub/linux/kernel/)
+  
+  [交叉编译工具链下载地址 Linaro](https://releases.linaro.org/components/toolchain/binaries/)
+  
   ```bash
   # arm 交叉编译环境有两种，
   1. 在非官网下载 arm-linux-gcc-4.4.3.tar.gz  然后配置环境变量。
@@ -313,27 +358,54 @@ Answer:
   # 使用make clean 清理编译过的.o .d .s .i zImage等编译过程/结果文件
   make clean
   
-  ##如果有需求需要清理.config 文件时请使用 make mrproper
-  
+  ##如果有需求需要清理.config 文件时请使用 \
+  make mrproper
+  make distclean
   
   # 使用make xxxx  选择特定开发板配置框架来作为内核处理文件
   ## chatGPT 给的回复，sunxi_defconfig 的内核配置文件是和 香蕉派M3 最相似的
   make sunxi_defconfig 
   
   # 修改内核所需要以及不需要的文件。
+  make menuconfig
   
   # 编译内核
   make -j15   # 使用15个CPU 核心进行编译
+  如果要编译uImage 就需要指定 LOADADDR
+  参考地址： https://www.cnblogs.com/bigsissy/p/11093789.html
   
   # 在 arch/arm/boot/ 中能找到编译好的内核文件
   
   # 在 arch/arm/boot/dts 中可以找到 sun8i-a83t-bananapi-m3.dts 的设备树文件
   
+  ```
   
+  > 如果遇到如下报错
   
+  ![image-20230804182558792](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037009.png)
+  
+  ```bash
+  # 添加环境变量
+  export ARCH=arm  # 这行命令可以没有，因为在Makefile 文件里修改了ARCH ?= arm 所以没问题
+  export CROSS_COMPILE=arm-linux-gnueabi-
+  # make -j15  编译之后遇到提问
+  GCC plugins (GCC_PLUGINS) [N/y/?] (NEW) 
+  # 我选的N
   ```
   
   
+
+- 编译uImage 文件
+
+  ![image-20230804095826371](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037010.png)
+
+  ```bash
+  # 上图使用了，但是编译报错
+  make uImage -j15 LOADADDR=0x40008000
+  # 第一次编译会报错，提示没有找到mkimage工具，需要手动安装u-boot-tools即可；
+  sudo apt-get install u-boot-tools
+  
+  ```
 
 
 
@@ -358,10 +430,12 @@ Answer:
   ```bash
   # 设备树用于描述
   
+  - 作为初学者，我就不自己修改设备树了。
+  - 在 /linux-6.1.42/arch/arm/boot/dts 中就有各厂商的设备树文件
+  - 而且刚好有我需要的 sun8i-a83t-bananapi-m3.dts 设备树源文件。
   
-  
-  
-  
+  # 在 ./linux-6.1.42 目录下执行 编译dts 生成dtb 文件
+  make dtbs
   
   ```
 
@@ -379,25 +453,167 @@ Answer:
 
 &emsp;&emsp;构建根文件系统可以使用 buildroot  或者busybox，
 
+[buildroot 教程](https://www.lxlinux.net/9319.html)
+
+[官网&&下载地址](https://buildroot.org/)
 
 
 
+```bash
+# 使用buildroot 会下载很多资源包。因为buildroot 本体比较小，如果还要使用它提供的编译器的话，就会下载很频繁
+# 由于没有刚好适配香蕉派M3 的官方配置文件 因此用m2 代替
+make bananapi_m2_ultra_defconfig
+```
+
+> 修改Target options 选项， 不使用浮点计算
+
+![image-20230804184458101](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037011.png)
+
+>修改Toolchain 选项，交叉编译工具链使用我们自己下载的工具链，并配置地址。
+
+请注意 toolchain kernel headers series( )  我用的 linaro-gcc-arm-linux-6.1.1 版本的，这里选的4.6.x 否则报错。。我也不知道为什么。
+
+![image-20230804185245290](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037012.png)
+
+![image-20230803175825789](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037013.png)
 
 
 
+> 修改System configuration 
 
+![image-20230804185603093](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037014.png)
+
+
+
+> 配置Filesystem images 设置文件系统格式
+
+![image-20230804185709632](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037015.png)
+
+
+
+> 配置Kernel 选项  禁止编译Linux 内核 和U-boot，内核+uboot 我们自己来( 除非我编译的uboot 跑不起来 )
+
+![image-20230804185845248](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037016.png)
+
+![image-20230804185953511](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037017.png)
+
+
+
+> 提示要安装unzip
+
+![image-20230807090600086](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037018.png)
+
+
+
+> 编译工具报错- 原因：我是用外部交叉编译工具，应当在Toolchain prefix 指定我用什么类型的( gnueabi/gnueabihf.... )
+
+![image-20230807095413186](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037019.png)
+
+![image-20230807095632512](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037020.png)
+
+- 可以开始编译
 
 
 
 #### uboot 引导
 
+[u-boot 下载地址](https://ftp.denx.de/pub/u-boot/)
 
+- 概览( 报错解决办法在下面的 '报错指南' )
 
+  ```bash
+  # 在configs 文件夹中存放了很多开发板的默认官方u-boot 配置文件
+  ## 由于没有Bananapi_m3 的，因此我们用稍微相似的 bananapi_m2_berry_defconfig
+  make bananapi_m2_berry_defconfig
+  
+  # 进入make menuconfig 配置界面 修改部分。
+  ARM architecture  --->
+    [*] Sunxi SoC Variant (sun8i (Allwinner A83T))  --->
+      (X) sun8i (Allwinner A83T)
+  
+  export CROSS_COMPILE=arm-linux-gnueabi-
+  make -j15   # 使用15核 进行编译
+  ```
 
+  TIP: 由于属于初学者，我的目的是为了自己编译内核和u-boot ，根文件系统 放入Linux 开发板让它跑起来，
 
+  因此修改部分能少改动就最好，避免跑不起来。
 
+- 报错指南
 
+  1. 使用在配置好make menuconfig 之后使用 make 编译报错
 
+     ![image-20230804163214538](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037021.png)
+
+     ```bash
+     # make 工具不知道用什么编译器来编译这类文件，因此要export 指定编译类型,
+     export CROSS_COMPILE=arm-linux-gnueabi-
+     
+     ## 对于不同的编译器具体看你的选择
+     
+     ### 注意： 该方法在你退出终端之后这个环境变量就会消失，还会继续报错，你如果还要继续编译你应该再次输入export XXXXX 指令
+     ### 如果你想每次不用这么麻烦，那么也可以将它写入到 vim ~/.bashrc 的用户变量中。
+     
+     # 上面方法等同于把 CROSS_COMPILE=arm-linux-gnueabi- 写入到make 命令中
+     make CROSS_COMPILE=arm-linux-gnueabi- -j15
+     ```
+
+  2. 好了，make 编译工具你已经选择好了，然后又有如下报错了
+
+     ![image-20230804163744118](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037022.png)
+
+     ```bash
+     # 这部分报错是python 环境的问题
+     ## ModuleNotFoundError: No module named 'distutils.core' 报错信息
+     
+     # 1. 检查是否有安装 distutils.core 模块
+     python3 -m distutils.core
+     ## 我这里提示 /usr/bin/python3: No module named distutils.core
+     # 2. 安装 distutils.core
+     python3 -m pip install --upgrade pip
+     python3 -m pip install --upgrade setuptools
+     
+     
+     ### 然后我这里又提示/usr/bin/python3: No module named pip  
+     ### 说明没安装python 的pip
+     # 3. 安装pip
+     sudo apt-get install python3-pip    # 如果是python3 就安装它，别的版本另外谷歌
+     
+     ## 再次安装 distutils.core
+     python3 -m pip install --upgrade pip
+     python3 -m pip install --upgrade setuptools
+     
+     # 这个报错就搞定了！
+     
+     
+     ```
+
+  3. 解决上一个报错问题之后又来，swig 库的问题
+
+     ![image-20230804164809442](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037023.png)
+
+     ```bash
+     # 安装swig 组件
+     apt-get install swig
+     ```
+
+  4. 之后报错一片红，因为缺少库的原因( 图片还没截完 )
+
+     ![image-20230804165012669](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071037024.png)
+
+     ```bash
+     # 该错误说明u-boot 编译的时候缺少 OpenSSL库的头文件
+     apt-get install libssl-dev 
+     
+     
+     # 此时理论上编译就能生成 u-boot,如果是make menuconfig 设置修改错误，也会导致编译报错。
+     # 建议先使用一个相似的 官方配置文件 编译通过之后再进行部分的修改
+     make bananapi_m2_berry_defconfig
+     make menuconfig
+     make -j15
+     ```
+
+     
 
 #### 修改Linux 登录界面
 
