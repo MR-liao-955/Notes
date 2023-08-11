@@ -27,11 +27,11 @@
 
   1. 在下图 `ISO 镜像` 这里将 `ubuntu ` 上传上去
 
-     ![image-20230526111955698](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739799.png)
+     ![image-20230807181921789](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821827.png)
 
   2. 在WEB 界面创建虚拟机，创建方法类似于 VMware ( 这里不再详述 )
 
-     ![image-20230526112215094](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739800.png)
+     ![image-20230807181927000](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821828.png)
 
      [参考教程：https://www.bilibili.com/video/BV1hh411S71J/?vd_source=c2d05182ffbc2da978ff445af107c7ef](https://www.bilibili.com/video/BV1hh411S71J/?vd_source=c2d05182ffbc2da978ff445af107c7ef)
 
@@ -74,7 +74,7 @@
   systemctl restart sshd
   ```
 
-  ![image-20230526111917173](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739801.png)
+  ![image-20230807181940225](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821829.png)
 
 - 使用 Xshell 工具连接ubuntu ( 便于复制粘贴文本 )
 
@@ -119,7 +119,7 @@
   >*最终解决办法： 打开https://oss-binaries.phusionpassenger.com/apt/passenger 找到你对应的内核的代号，14.04--Trusty  16.04--Xenial  18.04--Bionic*
   >https://releases.ubuntu.com/  这里会有对应内核代号的
   >
-  >![image-20230526113351566](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739802.png)
+  >![image-20230807181947355](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821830.png)
 
   ```react
   // 密钥& 证书之类
@@ -156,15 +156,15 @@
 
   - 获取安装脚本 script.deb.sh
 
-    ![image-20230526114039631](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739803.png)
+    ![image-20230807181954910](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821831.png)
 
   - 赋予脚本权限 chmod 777 script.deb.sh
 
-    ![image-20230526114138401](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739804.png)
+    ![image-20230807181959761](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821832.png)
 
   - 执行脚本 
 
-    ![image-20230526114233019](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739805.png)
+    ![image-20230807182004296](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821833.png)
 
   - 此时 source.list.d 文件夹下面会多出 gitlab-ce 的源，现在就可以 apt-get install gitlab-ce 了
   - 之后可以删除脚本（随意，反正不占空间）
@@ -231,11 +231,11 @@ net.ipv4.ip_forward=1
 ！！！ 在pve 界面要把新添加的网卡设置为桥接至虚拟局域网的网关(桥接相当于配置网关)
 ```
 
-![image-20230605095952576](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739806.png)
+![image-20230807182012906](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821834.png)
 
-![image-20230605095832109](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739808.png)
+![image-20230807182022514](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821835.png)
 
-![image-20230526142300799](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739809.png)
+![image-20230807182026414](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821836.png)
 
 
 
@@ -324,11 +324,11 @@ net.ipv4.ip_forward=1
   ```react
   
   root@gitlab:/etc/gitlab/ssl# ls
-  gitlab.qiot.cn.key  gitlab.qiot.cn.pem
+  gitlab.xxxx.xxx.key  gitlab.xxxx.xxx.pem
   
   // 修改权限
-  chmod 440 gitlab.qiot.cn.pem
-  chmod 600 gitlab.qiot.cn.key
+  chmod 440 gitlab.xxxx.xxx.pem
+  chmod 600 gitlab.xxxx.xxx.key
   
   // 修改链接为https、配置ssl 证书的地址
   // 修改/etc/gitlab/gitlab.rb 的url 链接和密钥之类  下方公钥后缀名可以是pem 
@@ -454,7 +454,7 @@ net.ipv4.ip_forward=1
 
   1. 在gitlab.rb 开启信息提示
 
-     ![image-20230705170608512](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307201405241.png)
+     ![image-20230807182038392](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821837.png)
 
      ```bash
      # 在/etc/gitlab/gitlab.rb 中添加一行配置信息
@@ -463,7 +463,7 @@ net.ipv4.ip_forward=1
 
   2. 做了第一步之后，报错信息就更改为
 
-     ![image-20230705170827494](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202307201405242.png)
+     ![image-20230807182043032](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821838.png)
 
 
 
@@ -562,7 +562,7 @@ net.ipv4.ip_forward=1
 
 3. 登录名称 gitlab  密码 ?   ,root 权限密码 ?  (不可直接使用root 登录)
 
-   ![image-20230526105904280](https://raw.githubusercontent.com/MR-liao-955/Notes/main/img/202306161739810.png)
+   ![image-20230807182053647](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202308071821839.png)
 
    
 

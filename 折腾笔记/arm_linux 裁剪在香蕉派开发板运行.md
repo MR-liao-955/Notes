@@ -1,5 +1,9 @@
 ### 手动裁剪一个Linux 系统，步骤记录。(未完成)
 
+[toc]
+
+#### 概览
+
 **写作目的：**
 
 1. 为我的开发板进行减负，自定义一个Linux 系统，并在其中运行wordpress 服务 。
@@ -36,51 +40,6 @@
 4. 熟悉xmake 或者 cmake 或者 交叉编译环境 的使用。
 
 
-
-- 涉及我之前不太熟悉的 Linux 命令
-
-  ```sh
-  // curl 命令
-  curl -L https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.4.7.tar.xz -o ./test.tar.xz
-  
-  // rz sz 命令，快速发送/接收文件
-  
-  // yum
-  
-  
-  ```
-  
-  
-
-#### 准备工作
-
-- 资料下载
-
-  ```shell
-  // 内核文件的下载  这里我下载的 linux-5.1.2.tar.gz 版本
-  https://cdn.kernel.org/pub/linux/kernel/v5.x/
-  curl https://mirrors.ustc.edu.cn/kernel.org/linux/kernel/v5.x/linux-5.1.2.tar.gz | tar xvf -
-  
-  // 查看文件大小
-  du -h linux-5.1.2.tar.gz
-  
-  ```
-  
-  
-
-
-
-- 这里使用X86 的ubuntu 系统作为编译环境
-
-  ```shell
-  // 使用xshell 连接ubuntu 服务器。
-  // 使用WinSCP 或者rz命令 传输文件，地址 `/home/kernal_workspace`
-  tar -xvf linux-5.1.2.tar.gz
-  
-  
-  ```
-  
-  
 
 #### 关于一些概念
 
@@ -196,7 +155,7 @@
 
 
 
-#### 1.修改内核的配置文件，以特定的模板为基准
+#### 修改内核的配置文件，以特定的模板为基准
 
 ```bash
 ASK: arm 内核文件中 路径arch/arm/configs 的各类_defconfig 是什么?
