@@ -19,7 +19,7 @@ if(0)
     log
 printf("-------");
 system("pause");
-// 此时会打印 
+// 此时会打印 -- printf("world\n"); 该行代码希望放在判断里面，因此这里未能实现想要的操作
 /* 
 world
 -------
@@ -27,81 +27,141 @@ world
 
 ```
 
-- 根据上面的情况，你也许会想到 给宏定义加一个括号{ }
+- 根据上面的情况，你也许会想到 给**宏定义加一个括号{ }**
 
   ```c
   // 加一个括号的情形1
-  #define log {printf("hello \n");printf("world\n");}
+  #define log() {printf("hello \n");printf("world\n");}
   if(0)
-      log
+      log()
   printf("-------");
   system("pause");
   
   ```
 
-  没错，这样确实能正常判断。但是我的if 后面加一个else 阁下应当怎么处理？
+  没错，这样确实能正常判断。**但是我的if 后面加一个else** 阁下应当怎么处理？
 
+  ![image-20230921113056603](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202309211200981.png)
+  
   ```c
   // 如果判断的是if else 
-  #define log {printf("hello \n");printf("world\n");};
+  #define log() {printf("hello \n");printf("world\n");}
   if(0)
   {
-      log
+      log();  // 这里会报错，展开因为一半写函数都会在后面添加; 因此这类容易报错
+      /*
+      展开为:
+      if(0)
+      {
+          {
+          printf("hello \n");
+          printf("world\n");
+          };  -- 这里不能有分号
+      }
+      */
   }
   else
   {
       printf("-------");
   }
-  
-  
   system("pause");
+  ```
   
+  去掉分号，就能正常编译，但是不符合代码阅读规范
+  
+  ![image-20230921113242257](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202309211200982.png)
+
+- 解决办法: `do{}while(0)`  黑科技。
+
+  ![image-20230921113841851](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202309211200983.png)
+
+
+
+#### 替代 goto
+
+- 使用goto 的代码
+
+  ```c++
+  void fun(int a)
+  {
+     if(1 == a)
+     {
+         ...//todo
+         goto exit;
+     }
+     if(2 == a)
+     {
+       ...//todo
+       goto exit;
+     }
+  exit:
+     ...//todo
+     printf("a is error"\n);
+  }
   ```
 
+- do{...}while(0) 替代goto:   -- break 跳出循环，就类似于goto到需要执行的地方
+
+  ```c++
+  int fun(int a)
+  {
+     do{
+         if(1 == a)
+         {
+           ...//todo
+           break;
+         }
+         if(2 == a)
+         {
+           ...//todo
+           break;
+         }
+     }while(0);
+     ...//todo
+     printf("a is error"\n);
+  }
+  ```
+
+  
+
+#### 定义单独函数块(可以避免变量重名冲突...)
+
+```c++
+int fun(int a)
+{
+   do{
+       if(1 == a)
+       {
+         ...//todo
+         break;
+       }
+       if(2 == a)
+       {
+         ...//todo
+         break;
+       }
+   }while(0);
+   ...//todo
+   printf("a is error"\n);
+}
+```
 
 
 
+#### 避免空宏的 warning
+
+&emsp;&emsp;有的时候，程序为了不同的平台移植或者不同架构的限制，很多时候会先定义空宏，后续再根据实际的需要看是否定义具体内容。但是在编译的时候，这些空宏可能会给出warning，为了避免这样的warning，我们可以使用do{...}while(0)来定义空宏，这种情况不太常见，因为有很多编译器已经支持空宏。
+
+```C++
+1 //空宏
+2 #define EMPTY_FUN
+3 //增加do{...}while(0)来定义空宏
+4 #define EMPTY_FUN do{}while(0) //避免了可能的编译warning
+```
 
 
 
-#### 替代 goto:
+> reference
 
-
-
-
-
-#### TODO://
-
-1. 页面的各类符号需要修改正确。
-
-2. 开屏的等待交界面需要搞好。
-
-3. 土壤温度这部分值为何还有，待解决。 -- 因为传参的时候导致
-
-4. 设备不联网的时候会导致I2C 读温湿度失败
-
-   ```bash
-   # 情景描述：
-   1. 如果未插卡，未联网的情况下，必须要在 下方中包含sys.wait() 函数才能正常拿到I2C 数据
-       lvgl.obj_align(env1_Info, env1_QR, nil, 65, 0)                    -- 相对位置 -- 居中
-       icon_create()
-       sys.wait(4000)
-       icon_flush()
-       sys.publish("SCR_INIT_DONE")
-   2. 如果插卡，联网的情况下，可以直接拿到I2C 数据，且不用sys.wait() 都可以拿到。
-   
-   # 猜测:
-   1. 可能是 联网部分会抢占系统时钟之类的。
-   2. 可能是 task 之间发布消息，但是温湿度那边正好被触发中断
-       
-   # 确定原因:
-   中断热的话，sensor_cb， 该中断是设备插入识别的中断。
-   再刨根问底: 就是 i2c_pwr() 写反了。应当是低电平能读取到数据
-   
-   
-   ```
-
-   
-
-   
+[参考地址](https://www.cnblogs.com/Sharemaker/p/17142670.html)
 
