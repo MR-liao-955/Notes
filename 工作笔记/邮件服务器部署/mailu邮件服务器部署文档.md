@@ -388,3 +388,75 @@ docker compose -p mailu exec admin flask mailu admin admin xxxx.cn PASSWORD
   ```
   
   
+
+#### 后续遇到的问题( 维护部分 )
+
+> 国庆回来时，公司有一次断电，服务器重启了，邮件服务器出BUG
+
+- 情况描述
+
+  &emsp;&emsp;10月5日公司断电，当时相对于gitlab 服务、mailu邮件服务器 而言，我更担心公司软路由的问题，因为之前断电导致软路由的文件系统损坏，导致公司断网这件事。。。后来治标不治本的临时恢复了一下，直到有一天网络再次崩溃，我才勉强给它完善了一下。
+
+  &emsp;&emsp;现象: 经过完善修复之后，公司软路由完美挺过这次停电，正常拨号上网，正常重启网卡并启动openwrt。但是，邮件服务器出问题了。。
+
+  &emsp;&emsp;mailu 登录页面可以进去，但是无法登录到webmail 页面, 但是可以发送邮件，接收只能转发。起初我推断是数据库连接方面的问题, 直到后来也没找到原因。。。不过推测十分可能是nginx 部分的问题。
+
+- 解决思路
+
+  1. 最开始找到问题点-> nginx && 数据库 && 初始化bug？
+  2. 尝试修改，发现没效果。因为数据库和服务是分离的，因此敢删除mailu 的docker 容器
+  3. 找不到问题点: 掏出万能解
+
+- 解决办法
+
+  每次执行修改操作时，请在proxmox 中做好快照备份，以免数据丢失。
+
+  > 参考以前的不小心删掉mailu 容器的解决步骤
+  >
+  > ```lua
+  > // 关闭mailu 的时候请使用 docker compose stop
+  > // 开启的时候请用 docker compose start
+  > 
+  > /* 如果你使用了docker compose down 之后，
+  >  * 再次打开时执行以下步骤
+  >  * 1. 使用 'docker compose -p mailu up -d' 运行docker 容器
+  >  * 2. 执行 ' docker exec -it mailu-webmail-1 bash ' 进入容器内部
+  >  * 3. 修改容器内 vi /var/www/roundcube/config/config.inc.php 配置文件
+  >  *    中数据库设置字段   '  $config['db_dsnw'] = 'mysql://xxxx:xxxx@172.16.2.11/roundcube';   '
+  >  * 4. 切勿修改 mysql 中roundcube 和 mailu  数据库，如果删掉了，你需要在roundcube 数据库中初始化表
+  >  *    初始化文件在 ' mailu-webmail-1 '容器的 ' /var/www/roundcube/SQL/mysql.initial.sql ' 数据库命令。
+  >  *    将该命令全部复制到 mysql 对应的' roundcube '数据库中生成表。
+  >  * 5. 不要再用不正确的姿势关闭mailu 容器了。 
+  >  * 6. 不要再删数据库了。
+  >  *
+  >  */
+  > ```
+
+  - 开门见山，直接照做就行
+
+    ```shell
+    # 进入mailu 的docker 配置文件路径
+    cd /home/mailu
+    
+    # 删掉mailu 容器( 从容器中删除，但是docker-compose.yml还在哦！！)
+    docker compose down
+    
+    # 之后就像上面的删除掉容器，docker compose down 命令的恢复方法即可。
+    ```
+
+    
+
+
+
+> 等待下一次的BUG 出现并维护。。。。( 希望没BUG )
+
+
+
+
+
+
+
+
+
+
+
