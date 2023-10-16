@@ -262,7 +262,7 @@ net.ipv4.ip_forward=1
   iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 8051 -j DNAT --to 172.16.1.11:8051
   iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 6665 -j DNAT --to 172.16.1.11:22
   iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 6666 -j DNAT --to 172.16.1.11:80
-  
+   
   
   //proxmox更换国内源 ！！ 便于安装iptables
   https://www.cnblogs.com/HGNET/p/17124858.html
