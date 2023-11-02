@@ -1,5 +1,7 @@
 ### C中常用库函数 （TODO: 持续更新）
 
+[toc]
+
 - string 数据处理
 
   1.  strstr( ) 查找子串
@@ -329,8 +331,6 @@ uint32_t str_toNumb(char *str, uint16_t str_len)
 
 
 
-
-
 ##### 2. 数组转化为string 
 
 ```c
@@ -425,7 +425,7 @@ uint16_t ADC_convert_temp(const uint16_t voltage)
     */
 
     float temp_R;
-    temp_R = (voltage * 10) / (4095 - voltage);
+    temp_R = (voltage * 10) / (4095 - voltage);  // 由硬件工程师给计算公式
     // cm_demo_printf("voltage = %04x \n", voltage);
     // cm_demo_printf("voltage = %d \n", voltage);
     // cm_demo_printf("temp_R = %f \n", temp_R);
@@ -549,7 +549,7 @@ int get_randomNumb()
 
 
 
-##### 5.大端小端转换
+##### 5.两字节 大端小端转换
 
 往结构体中放数据，待解析时会出现2字节及以上的字节翻转，高低位交换。因此在处理数据的时候我们选择将大小端进行转换。以下是一个2字节的转换案例，如果需要更多字节，可以更新一下接口函数
 
@@ -569,6 +569,84 @@ void Byte_Convert(uint16_t *source)
 ```
 
 
+
+##### 6. 一字节 ( 8bit ) 高位和低位的位置互换 + 数据替换
+
+应用场景: 目前写这个函数的时候是为了驱动 RGB 灯带。
+
+> 高低位互换
+
+```c
+/**
+ * @author: DearL
+ * @brief: 取反，将16进制低位在前，高位在后，返回亦是1字节 16进制数
+ * @parm: HEX
+ * @return: ~HEX 取反后的16进制数
+ * @date: 2023.10.26
+ */
+uint8_t color_dec(uint8_t data)
+{
+    uint8_t ref = 0x00;
+    uint8_t i = 7;
+    // 循环7次，反向短除法。(最后结果反写)
+    while (i)
+    {
+        uint8_t ret = 0;
+        ret = data % 2; // 取余
+        data = data / 2;
+        printf("ret == %d, ", ret);
+        ref = ref | (ret << i); // 向16进制末尾插入余数
+        if (i == 1)             // 短除法最后一位
+        {
+            ref = ref | ((data % 2) << 0);
+            printf("ret == %d, ", ret);
+        }
+        i--;
+    }
+    ESP_LOGI(TAG, "ref =  %d", ref);  // ESP32 打印输出
+    return ref;
+}
+```
+
+> 数据替换 ( 数据膨胀 )
+
+用途：写该函数时，是使用 SPI 模拟类似 PWM 信号，根据时序计算出发送多少个 1，表示 MOSI 高位占用时间，也可以用模拟占空比。0xFC = 0b1111 1100 ，0x03 = 0b0000 0011 , 当占空比较大时 表示为 1。
+
+```c
+/**
+ * @brief 将数据膨胀 8 字节，高位在前，这就是将要发给 RGB 灯带的数据
+ * @parm: data: 原始数据， arr: 将要转化成的数组
+ * @return: void
+ */
+uint8_t res = 0;
+void value_expand(uint8_t data, uint16_t *arr)
+{
+    for (size_t i = 7; i > 0; i--)
+    {
+        res = data % 2;
+        data = data / 2;
+        if (res == 1)
+        {
+            arr[i] = 0xFC;
+        }
+        else
+        {
+            arr[i] = 0x03;
+        }
+        if (i == 1)
+        {
+            if (data % 2 == 1)
+            {
+                arr[0] = 0xFC;
+            }
+            else
+            {
+                arr[0] = 0x03;
+            }
+        }
+    }
+}
+```
 
 
 

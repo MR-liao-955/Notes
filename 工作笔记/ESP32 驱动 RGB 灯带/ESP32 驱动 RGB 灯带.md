@@ -6,17 +6,41 @@
 
 - python 环境，电脑已经安装了python 3.9.13 因此跳过这一步
 
-  ![image-20231023172119370](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231023172119370.png)
+  ![image-20231023172119370](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420427.png)
 
 - [环境搭建环境教程文档](https://aijishu.com/a/1060000000295342)
 
 - 在 VSCode 中安装 'ESP-IDF EXPLORER' 插件，并使用 VS code 终端 PowerShell 编译。
 
-  ![image-20231027114351647](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231027114351647.png)
+  ![image-20231027114351647](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420428.png)
 
 - `idf.py build` 进行编译,  
 
   `idf.py -p COM124 flash`  进行烧录固件
+
+> 编译时环境变量报错指南
+
+- 使用 VScode 插件进行编译和烧录
+
+  ![image-20231031115259412](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420429.png)
+
+- 使用 powershell 时执行命令  'idf.py build' 报错
+
+  ![image-20231031113457789](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420430.png)
+
+  
+
+  解决办法:
+
+  添加环境变量 在如下图的路径下  `.\export.bat`
+
+  ![image-20231031115208987](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420431.png)
+
+  ![image-20231031113759790](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420432.png)
+
+  
+
+   
 
 
 
@@ -34,9 +58,9 @@
 
   根据输入的高低电平持续时间的占比来决定数字是 0 还是 1，可以根据固定的时钟，来对应 SPI 持续发送字节来表示输入的是高电平还是低电平
 
-  ![image-20231023183820806](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231023183820806.png)
+  ![image-20231023183820806](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420433.png)
 
-  ![image-20231027115043784](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231027115043784.png)
+  ![image-20231027115043784](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420434.png)
 
   注:  该灯珠文档有误，24bit 的数据结构标反，应该时 GRB 的顺序结构。
 
@@ -48,7 +72,7 @@
 
   (3bit->1 , 6bit->0) 代表低电平。
 
-  ![image-20231023190916403](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231023190916403.png)
+  ![image-20231023190916403](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420435.png)
 
 
 
@@ -64,13 +88,15 @@
 
 - ESP32 引脚描述
 
-  ![引脚图](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/%E5%BC%95%E8%84%9A%E5%9B%BE.png)
+  ![引脚图](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420436.png)
 
-![image-20231024091405830](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231024091405830.png)
+![image-20231024091405830](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420437.png)
 
 
 
 > 实现部分代码 ( 讲解在后面 )
+
+- 初代版本代码 ( 点亮多少个灯珠就发送多长的结构体，如果发送 50个 甚至 200 个灯珠，内存占用就太大了)，栈溢出警告 ( stack over flower )  
 
 ```c
 #include <stdio.h>
@@ -427,7 +453,97 @@ void app_main(void)
   
   ```
 
+
+
+#### 数据处理函数
+
+- 8 字节高位和低位呼唤位置
+
+  ```c
+  /**
+   * @author: DearL
+   * @brief: 取反，将16进制低位在前，高位在后，返回亦是1字节 16进制数
+   * @parm: HEX
+   * @return: ~HEX 取反后的16进制数
+   */
+  uint8_t color_dec(uint8_t data)
+  {
+      uint8_t ref = 0x00;
+      uint8_t i = 7;
+      // 循环7次，反向短除法。(最后结果反写)
+      while (i)
+      {
+          uint8_t ret = 0;
+          ret = data % 2; // 取余
+          data = data / 2;
+          printf("ret == %d, ", ret);
+          ref = ref | (ret << i); // 向16进制末尾插入余数
+          if (i == 1)             // 短除法最后一位
+          {
+              ref = ref | ((data % 2) << 0);
+              printf("ret == %d, ", ret);
+          }
+          i--;
+      }
+      ESP_LOGI(TAG, "ref =  %d", ref);  // ESP32 打印输出
+      return ref;
+  }
+  ```
+
+
+
+#### 代码改进
+
+> 对于数据分段，点亮较长的灯带，SPI 通过分段发送，让灯变量
+
+- 改进部分:
+
+  ```c
+  void queue_write(spi_device_handle_t spi, RGB_color_t *rgb_t, uint8_t len)
+  {
+      uint8_t times = len / 10;
+      uint8_t residue = len % 10; // 剩余SPI 需要发送的长度
+      // 发送次数
+      // uint8_t cycle_count = 10;
+      for (size_t i = 0; i < times; i++)
+      {
+          for (size_t j = 0; j < 10; j++)
+          {
+              spi_write(spi, &rgb_t[j], sizeof(RGB_color_t));
+          }
+      }
+      for (size_t i = 0; i < residue; i++)
+      {
+          spi_write(spi, &rgb_t[i], sizeof(RGB_color_t));
+      }
+  }
   
+  // 伪代码，截取部分
+  void test()
+  {
+      uint8_t red[3] = {255, 255, 255}; // G R B
+      RGB_color_t send_rgb_arr_test[10] = {}; // TODO: 先以10 个灯珠为缓存，依次发送
+      for (size_t i = 0; i < 10; i++)
+      {
+          dec_spisend_data(&red, &send_rgb_arr_test[i]);
+      }
+      while (1)
+      {
+          queue_write(spi, &send_rgb_arr_test, 130);
+      }
+  }
+  
+  ```
+
+- 待改进部分: 发送不同颜色的灯的处理，显然上方代码将一个很长的灯带分成多份 10 个长度的灯，但 10 个灯只能亮同一种颜色 ( 如果去发送数据的代码改，那么就会增加耦合度 )
+
+  ```c
+  //TODO: 
+  ```
+
+  
+
+
 
 #### 注意事项 && 碰到的问题
 
@@ -437,7 +553,7 @@ void app_main(void)
 
   1. 如果采用 string 的方式发送时，比如 "1111" 等代码，示波器显示的波纹，可以看出，示波器时从左向右扫描，发送的数据  (char ) '1' = 0x31 = 0b00110001 因此波纹如下。
 
-     ![image-20231027155541953](ESP32%20%E9%A9%B1%E5%8A%A8%20RGB%20%E7%81%AF%E5%B8%A6.assets/image-20231027155541953.png)
+     ![image-20231027155541953](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311021420438.png)
 
   2. 后续测试不同的报文，示波器左边代表设备先接收到的数据，而且是字符串第一个字符。
 
@@ -445,7 +561,7 @@ void app_main(void)
 
   > 得出结论
 
-  ESP32 发送出去的数据，高位 ( 最左边 ) 最先从 SPI 引脚发出。
+  ESP32 发送出去的数据，数据组包高位 ( 最左边 ) 最先从 SPI 引脚发出。而且单个字节的高位 ( 左边 ) 先发。
 
   
 
@@ -469,13 +585,37 @@ void app_main(void)
 
      根据 Hex 所表示的二进制数，这边理解为一种占空比的形式？
 
+     ( 制作灯珠的厂家文档并不规范，因此同一种 RGB 编码能驱动多种类型灯珠 )
+
+- 由于有多个灯珠，而如果创建相同灯珠数量长度的结构体数组，就会导致内存占用完之后栈溢出
+
+  当时对该问题的思考：
+
+  1. 设置一个缓存队列，固定缓存队列的长度，这样就能控制栈的大小。但我没考虑发送数组组包的时候也得使用内存空间。
+  2. 使用 malloc 来分配堆空间以组包数据，但是 malloc 依旧会占用特别大内存 ( 根据灯长度决定 )。
+  3. 临时考虑采用 SPI 分段发送，使用长度为 10 的结构体数组作为缓存，如果亮 66 个灯，就发送7次。
+
+  采用的方案: 
+
+  &emsp;&emsp;采用的上述第三个思考的办法，先临时能让模块驱动很长的 RGB 灯，后续再想办法做成别的效果。
+
+  不足之处: 
+
+  &emsp;&emsp;采用这个办法会导致一组灯只能亮 同一种颜色，如果要改动亮灯的不同效果，还得在代码中继续更改。
 
 
 
+- //TODO:
 
-- 
+  内存空间利用率的问题，需要设置缓存将数据发送之后清除缓存区并添加后续的数据。
 
+  这个如果用队列那会方便很多 ( 如果使用 STL  的 queue 容器就方便太多了 )。
 
+  这里考虑使用 C 中写一个队列缓存
+
+  
+
+  
 
 
 
