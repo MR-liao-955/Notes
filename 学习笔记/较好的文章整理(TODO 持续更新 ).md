@@ -22,7 +22,15 @@
 
 
 
+> C++ 中 Struct 和 Class 的区别，以及值类型 VS 引用类型
 
+- 这是一个优秀的博主，这篇文章逻辑清晰，虽然内容不算特别耳目一新，但文章读起来赏心悦目。
+
+  [这位博主主页履历](https://broadgeek.com/about/)
+
+  [C++ 中 Struct 和 Class 的区别](https://broadgeek.com/2020/06/29/52b1/)
+
+  [这位博主的路线，希望不是卖课的。。应该不会。。](https://broadgeek.com/2020/06/21/276b/)
 
 
 

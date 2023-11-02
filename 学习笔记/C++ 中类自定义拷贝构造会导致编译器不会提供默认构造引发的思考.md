@@ -49,6 +49,9 @@ public:
 
     static bool ICACHE_RAM_ATTR nullCallbackRx(rx_status) {return false;}
     static void ICACHE_RAM_ATTR nullCallbackTx() {}
+    
+    bool (*RXdoneCallback)(rx_status crcFail); //function pointer for callback
+    void (*TXdoneCallback)(); //function pointer for callback
 	/*
 	...................... 省略后面函数 ......................
     */
@@ -96,7 +99,74 @@ SX127xDriver::SX127xDriver(): SX12xxDriverCommon()  /** 这部分貌似是拷贝
   lowFrequencyMode = SX1278_HIGH_FREQ;
   lastSuccessfulPacketRadio = SX12XX_Radio_1;
 }
+
 ```
+
+- 该问题是语法问题，chatGPT 给出解答如下：
+
+  ```c++
+  class SX12xxDriverCommon
+  {
+  public:
+      SX12xxDriverCommon():    /**  此处的 ':' 解释  **/
+          RXdoneCallback(nullCallbackRx),
+          TXdoneCallback(nullCallbackTx) {}
+  }
+  ```
+
+  1. 该部分 C++ 类中 `类名( ):` 是用来初始化类的对象的，对于 `RXdoneCallback(nullCallbackRx),TXdoneCallback(nullCallbackTx) {}` 该函数为回调函数指针。
+
+  2. 先找到定义它的地方
+
+     `bool (*RXdoneCallback)(rx_status crcFail);void (*TXdoneCallback)();`
+
+     这种类型的定义是定义的函数指针 // function pointer for callback
+
+  3. 语法说明: 
+
+     `类名():` 这种语法和 `类名( ){}`相似，
+
+     不同点：
+
+     -  `类名():`  
+       1. 只能进行成员变量的初始化。
+       2. 语法：`MyClass() : x(0), y(0.0) {}` 每个成员之间使用 `,` 隔开。 
+     - `类名( ){}`，可以在函数体内进行额外的处理。
+     - 性能方面的注意事项，`类名():` 在性能方面上更有优势。
+
+     ```c++
+     class MyClass {  // chatGPT 给的解释
+     public:
+         int x;
+         double y;
+     /**
+     说明: 下方两个 MyClass() 无参构造，只是为了比较说明用，实际不能写两个相同的函数
+     */
+         // 使用初始化列表初始化成员变量
+         MyClass() : x(0), y(0.0) {
+             // 这里只能进行成员变量的初始化
+         }
+     
+         // 使用构造函数主体进行初始化
+         MyClass() {
+             x = 0;        // 初始化成员变量
+             y = 0.0;
+             // 在构造函数主体内可以执行更多操作
+             if (x > 10) {
+                 // 做一些额外处理
+             }
+         }
+     };
+     
+     ```
+
+- `SX127xDriver::SX127xDriver(): SX12xxDriverCommon(){ ... } ` 的解释
+
+  &emsp;&emsp;改行代码指的是函数的继承，`SX127xDriver` 类中的 `SX127xDriver( )` 构造函数继承于 `SX12xxDriverCommon()` 的构造函数，而父类构造是一个指针。。这部分代码较为复杂，没仔细阅读。
+
+
+
+
 
 
 
