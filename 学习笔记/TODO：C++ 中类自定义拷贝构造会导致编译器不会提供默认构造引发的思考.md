@@ -166,6 +166,34 @@ SX127xDriver::SX127xDriver(): SX12xxDriverCommon()  /** 这部分貌似是拷贝
 
 
 
+- 在 RGB  灯带驱动库文件，再次遇到该语法
+
+  ```c++
+  /*
+  Adafruit_NeoPixel 类中的有参构造函数Adafruit_NeoPixel(...)
+  ':' 后面的是类成员的初始化。
+  
+  */
+  Adafruit_NeoPixel::Adafruit_NeoPixel(uint16_t n, int16_t p, neoPixelType t)
+      : begun(false), brightness(0), pixels(NULL), endTime(0) {
+    updateType(t);
+    updateLength(n);
+    setPin(p);
+  #if defined(ARDUINO_ARCH_RP2040)
+    // Find a free SM on one of the PIO's
+    sm = pio_claim_unused_sm(pio, false); // don't panic
+    // Try pio1 if SM not found
+    if (sm < 0) {
+      pio = pio1;
+      sm = pio_claim_unused_sm(pio, true); // panic if no SM is free
+    }
+    init = true;
+  #endif
+  }
+  ```
+
+  
+
 
 
 #### - 虚析构 & 纯虚析构解决父类指针释放子类对象的问题，那么进行验证？
@@ -175,6 +203,8 @@ SX127xDriver::SX127xDriver(): SX12xxDriverCommon()  /** 这部分貌似是拷贝
 - 纯虚析构用于解决父类指针释放子类对象问题
 
   如果子类中没有堆中的数据，则不需要释放，就不需要写纯虚析构。
+  
+- 根据之前写的笔记部分，当父类纯虚虚构的时候，为什么一定要在外部实现父类的纯虚析构呢？如果没实现它为何会编译报错？
 
 
 
@@ -184,11 +214,21 @@ SX127xDriver::SX127xDriver(): SX12xxDriverCommon()  /** 这部分貌似是拷贝
 
 
 
+- 虚函数指针 vfprt、虚函数表 vftable、虚基指针 vbptr
 
 
 
 
 
+24.47
+
+4.116  4.114  4.129   4.135  3.898  4.101
+
+
+
+24.47
+
+4.119   4.094    4.093    4.150    3.819    4.154
 
 
 

@@ -617,6 +617,535 @@ void app_main(void)
 
   
 
+```c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/spi_master.h"
+#include "driver/gpio.h"
+
+#include "sdkconfig.h"
+#include "esp_log.h"
+
+#define DMA_CHAN 2
+#define PIN_NUM_MISO 12
+#define PIN_NUM_MOSI 13
+#define PIN_NUM_CLK 14
+#define PIN_NUM_CS 15
+
+#define LED_NUM 33
+
+static const char TAG[] = "main";
+
+esp_err_t spi_write(spi_device_handle_t spi, uint8_t *data, uint8_t len);
+// 使用结构体来存放数据
+typedef struct
+{
+    uint16_t R[8];
+    uint16_t G[8];
+    uint16_t B[8];
+} RGB_color_t;
+
+/**
+ * @author: DearL
+ * @brief: 取反，将16进制低位在前，高位在后，返回亦是1字节 16进制数(根据短除法的逻辑写的代码)
+ * @parm: HEX
+ * @return: ~HEX 取反后的16进制数
+ */
+// uint8_t color_dec(uint8_t data)
+// {
+//     uint8_t ref = 0x00;
+//     uint8_t i = 7;
+//     // 循环7次，反向短除法。(最后结果反写)
+//     while (i)
+//     {
+//         uint8_t ret = 0;
+//         ret = data % 2; // 取余
+//         data = data / 2;
+//         printf("ret == %d, ", ret);
+//         ref = ref | (ret << i); // 向16进制末尾插入余数
+//         if (i == 1)             // 短除法最后一位
+//         {
+//             ref = ref | ((data % 2) << 0);
+//             printf("ret == %d, ", ret);
+//         }
+//         i--;
+//     }
+//     ESP_LOGI(TAG, "ref =  %d", ref);
+//     return ref;
+// }
+
+/**
+ * @brief: 不取反  emmmm
+ * @parm: HEX
+ * @return: ~HEX 取反后的16进制数
+ */
+// uint8_t color_dec(uint8_t data)
+// {
+//     ESP_LOGI(TAG, "data =  %d", data);
+//     return data;
+// }
+
+/**
+ * @brief 将数据膨胀 8 字节，高位在前，这就是将要发给 RGB 灯带的数据
+ * @parm: data: 原始数据， arr: 将要转化成的数组
+ * @return: void
+ */
+uint8_t res = 0;
+void value_expand(uint8_t data, uint16_t *arr)
+{
+    for (size_t i = 7; i > 0; i--)
+    {
+        res = data % 2;
+        data = data / 2;
+        if (res == 1)
+        {
+            arr[i] = 0xFC;
+            // arr[i] = 0xE0;
+        }
+        else
+        {
+            arr[i] = 0x03;
+            // arr[i] = 0xC0;
+            // arr[i] = 0x07;
+        }
+        if (i == 1)
+        {
+            if (data % 2 == 1)
+            {
+                arr[0] = 0xFC;
+                // arr[0] = 0xE0;
+            }
+            else
+            {
+                arr[0] = 0x03;
+                // arr[0] = 0xC0;
+                // arr[0] = 0x07;
+            }
+        }
+    }
+}
+
+uint16_t R_arr[8] = {};
+uint16_t G_arr[8] = {};
+uint16_t B_arr[8] = {};
+void dec_spisend_data(const uint8_t *color, RGB_color_t *sendDATA)
+{
+    // 扩容处理
+    /**
+     * 1个字节扩容至8字节
+     * 每一个数据位提出，然后打包成结构体，等待发送。
+     */
+    // 数据大端的情况不使用color_dec() 函数
+    // value_expand(color_dec(color[0]), &R_arr);
+    // value_expand(color_dec(color[1]), &G_arr);
+    // value_expand(color_dec(color[2]), &B_arr);
+    value_expand(color[0], &R_arr);
+    value_expand(color[1], &G_arr);
+    value_expand(color[2], &B_arr);
+    // 将数据传递给结构体，作为要发送的数据
+    memcpy(sendDATA->R, R_arr, sizeof(R_arr));
+    memcpy(sendDATA->G, G_arr, sizeof(G_arr));
+    memcpy(sendDATA->B, B_arr, sizeof(B_arr));
+}
+
+/**
+ * @brief: 根据彩灯的算法，该函数用于呼吸灯 && 流光灯等具体算法实现
+ * @note: 为了避免过于暗淡，因此有一个85 的限位，防止亮度过低
+ * @param: WheelPos 轮子位置，
+ * @copyright: 复制于网上的算法
+ */
+void Wheel(uint8_t *sendArr, uint8_t WheelPos, uint8_t brightness)
+{
+    WheelPos = 255 - WheelPos;
+    if (WheelPos < 85)
+    {
+        sendArr[0] = (255 - WheelPos * 3) * brightness / 255;
+        sendArr[1] = 0;
+        sendArr[2] = (WheelPos * 3) * brightness / 255;
+        return;
+    }
+    if (WheelPos < 170)
+    {
+        WheelPos -= 85;
+        sendArr[0] = 0;
+        sendArr[1] = (WheelPos * 3) * brightness / 255;
+        sendArr[2] = (255 - WheelPos * 3) * brightness / 255;
+        return;
+    }
+    WheelPos -= 170;
+    sendArr[0] = (WheelPos * 3) * brightness / 255;
+    sendArr[1] = (255 - WheelPos * 3) * brightness / 255;
+    sendArr[2] = 0;
+    return;
+}
+
+// Slightly different, this makes the rainbow equally distributed throughout
+// 渐变流光灯效果
+/*
+    TODO: 将发送数据做成缓存，20个为一组，发多少清空多少，避免内存占用太多
+    待考虑的地方：结构体的装载速度要够快，在发送间隔之内要做到装载的结构体完成。
+    如果 20 个为一组不能完成装载，那就在发送数据的时候装载。
+*/
+
+void rainbowCycle(spi_device_handle_t spi) // 发送数据
+{
+    uint16_t i, j;
+    RGB_color_t send_color_data_t[LED_NUM] = {};
+    uint8_t sendArr[3] = {};
+    memset(&sendArr, 0, sizeof(sendArr));
+    // for (j = 0; j < 10; j++)
+    for (j = 0; j < 256 * 5; j++)
+    {                                 // 5 cycles of all colors on wheel
+        for (i = 0; i < LED_NUM; i++) // 根据长度来确定
+        {
+            Wheel(&sendArr, ((i * 256 / LED_NUM) + j), 64);
+            dec_spisend_data(&sendArr, &send_color_data_t[i]);
+        }
+        ESP_LOGI(TAG, "-----------------------------------\n");
+        for (size_t i = 0; i < LED_NUM; i++)
+            spi_write(spi, &send_color_data_t[i], sizeof(RGB_color_t));
+        vTaskDelay(1);
+    }
+}
+
+// 渐变流光灯
+void rainbow(spi_device_handle_t spi)
+{
+    uint16_t i, j;
+    RGB_color_t send_color_data_t[LED_NUM] = {};
+    uint8_t sendArr[3] = {};
+    memset(&sendArr, 0, sizeof(sendArr));
+    for (j = 0; j < 256; j++)
+    {
+        for (i = 0; i < LED_NUM; i++) // 循环130次， 130 为灯的个数
+        {
+            Wheel(&sendArr, (i + j), 255);
+            dec_spisend_data(&sendArr, &send_color_data_t[i]);
+        }
+        for (size_t i = 0; i < LED_NUM; i++)
+            spi_write(spi, &send_color_data_t[i], sizeof(RGB_color_t));
+        vTaskDelay(1);
+    }
+}
+
+// 剧场追逐样式  //TODO:未完成
+//  uint32_t 表示颜色
+void theaterChase(spi_device_handle_t spi, const uint8_t *sendArr)
+{
+    //{255, 255, 0}
+    // uint8_t sendArr[3] = {255, 255, 0};
+    RGB_color_t send_color_data_t[LED_NUM] = {};
+    // memset(&sendArr, 0, sizeof(sendArr));  //请勿使用该函数memset 形参
+    uint16_t nocolor[8] = {};
+
+    for (int j = 0; j < 10; j++)
+    { // do 10 cycles of chasing
+        for (int q = 0; q < 3; q++)
+        {
+            value_expand(sendArr[0], &R_arr);
+            value_expand(sendArr[1], &G_arr);
+            value_expand(sendArr[2], &B_arr);
+            value_expand(0, &nocolor);
+            for (uint16_t i = 0; i < LED_NUM; i = i + 3)
+            {
+                /*
+                    产生现象: 只亮2个灯
+                    猜测原因: 因为只隔3个才填充数据导致,中部缺失的数据没有传入,
+                            超过间隔时间之后导致后面的灯不亮.
+                */
+                // 装载进结构体
+                if ((i + q) >= LED_NUM)
+                    break;
+                // 将数据传递给结构体，作为要发送的数据
+                memcpy(send_color_data_t[i + q - 2].R, nocolor, sizeof(R_arr));
+                memcpy(send_color_data_t[i + q - 2].G, nocolor, sizeof(G_arr));
+                memcpy(send_color_data_t[i + q - 2].B, nocolor, sizeof(B_arr));
+                memcpy(send_color_data_t[i + q - 1].R, nocolor, sizeof(R_arr));
+                memcpy(send_color_data_t[i + q - 1].G, nocolor, sizeof(G_arr));
+                memcpy(send_color_data_t[i + q - 1].B, nocolor, sizeof(B_arr));
+                memcpy(send_color_data_t[i + q].R, R_arr, sizeof(R_arr));
+                memcpy(send_color_data_t[i + q].G, G_arr, sizeof(G_arr));
+                memcpy(send_color_data_t[i + q].B, B_arr, sizeof(B_arr));
+
+                // strip.setPixelColor(i + q, c); // turn every third pixel on
+                // spi_write(spi, &send_color_data_t[i + q], sizeof(RGB_color_t));
+            }
+            // 发送具体数据编码
+            for (size_t i = 0; i < LED_NUM; i++)
+                spi_write(spi, &send_color_data_t[i], sizeof(RGB_color_t));
+            vTaskDelay(50);
+            for (uint16_t i = 0; i < LED_NUM; i = i + 3)
+            {
+                if ((i + q) >= LED_NUM)
+                    break;
+                memset(&send_color_data_t[i + q], nocolor, sizeof(send_color_data_t[i + q]));
+                memset(&send_color_data_t[i + q - 1], nocolor, sizeof(send_color_data_t[i + q]));
+                memset(&send_color_data_t[i + q - 2], nocolor, sizeof(send_color_data_t[i + q]));
+                // strip.setPixelColor(i + q, 0); // turn every third pixel off
+            }
+        }
+    }
+}
+
+// TODO:未完成,算法实现依旧有点怪异 如果要置0,不能直接传0 进去
+void theaterChaseRainbow(spi_device_handle_t spi)
+{
+    RGB_color_t send_color_data_t[LED_NUM] = {};
+    uint8_t sendArr[3] = {};
+    for (int j = 0; j < 256; j++)
+    { // cycle all 256 colors in the wheel
+        for (int q = 0; q < 3; q++)
+        {
+            for (uint16_t i = 0; i < LED_NUM; i = i + 3)
+            {
+                if ((i + q) >= LED_NUM)
+                    break;
+                Wheel(&sendArr, (i + j) % 255, 128);
+                dec_spisend_data(&sendArr, &send_color_data_t[i + q]);
+                memset(&sendArr, 0, sizeof(sendArr));
+                dec_spisend_data(&sendArr, &send_color_data_t[i + q - 1]);
+                dec_spisend_data(&sendArr, &send_color_data_t[i + q - 2]);
+                // strip.setPixelColor(i + q, Wheel((i + j) % 255)); // turn every third pixel on
+            }
+
+            for (size_t i = 0; i < LED_NUM; i++)
+                spi_write(spi, &send_color_data_t[i], sizeof(RGB_color_t));
+
+            vTaskDelay(10);
+
+            for (uint16_t i = 0; i < LED_NUM; i = i + 3)
+            {
+                if ((i + q) >= LED_NUM)
+                    break;
+                // i+q 置为0, 为何不 i+q-1,i+q-2 也置为0? 因为上面已经做了这件事
+                dec_spisend_data(&sendArr, &send_color_data_t[i + q]);
+                // strip.setPixelColor(i + q, 0); // turn every third pixel off
+            }
+        }
+    }
+}
+
+// 流星
+/**
+ * @note: 将实现效果比作贪吃蛇
+ *
+ */
+void meteor(spi_device_handle_t spi, uint8_t red, uint8_t green, uint8_t blue)
+{
+    uint8_t sendArr[3] = {};
+    RGB_color_t send_color_data_t[LED_NUM] = {};
+
+    uint8_t noclolor[3] = {};
+    noclolor[0] = 0;
+    noclolor[1] = 0;
+    noclolor[2] = 0;
+    // ---------
+    const uint8_t num = 3;
+    uint8_t max_color = red;
+    if (green > max_color) // 选举单色光中最高光强
+        max_color = green;
+    if (blue > max_color)
+        max_color = blue;
+    uint8_t instance = (max_color - 200) / num;  // 55/15 == 3
+    for (uint16_t i = 0; i < LED_NUM + num; i++) // 灯珠个数+队列最后一位
+    {
+        for (uint8_t j = 0; j < num; j++) // 蛇头
+        {
+            if (i - j >= 0 && i - j < LED_NUM) // 渐变 变暗  instance为变暗因子
+            {
+                int red_after = red - (instance * j);
+                int green_after = green - (instance * j);
+                int blue_after = blue - (instance * j);
+
+                if (j >= 1) // 蛇身,亮度比蛇头暗很多
+                {
+                    red_after -= 200;
+                    green_after -= 200;
+                    blue_after -= 200;
+                }
+                sendArr[0] = red_after >= 0 ? red_after : 0;
+                sendArr[1] = green_after >= 0 ? green_after : 0;
+                sendArr[2] = blue_after >= 0 ? blue_after : 0;
+                dec_spisend_data(&sendArr, &send_color_data_t[i - j]);
+            }
+        }
+        if (i - num >= 0 && i - num < LED_NUM) // 删掉队尾
+        {
+            dec_spisend_data(&noclolor, &send_color_data_t[i - num]);
+        }
+
+        for (size_t i = 0; i < LED_NUM; i++)
+            spi_write(spi, &send_color_data_t[i], sizeof(RGB_color_t));
+        vTaskDelay(8);
+    }
+}
+
+// void meteor_overturn(uint8_t red, uint8_t green, uint8_t blue, uint8_t wait)
+// {
+
+//   const uint8_t num = 15;
+//   uint8_t max_color = red;
+//   if (green > max_color)
+//     max_color = green;
+//   if (blue > max_color)
+//     max_color = blue;
+//   uint8_t instance = (max_color - 200) / num;
+//   for (int i = strip.numPixels() - 1; i >= -num; i--)
+//   {
+//     for (uint8_t j = 0; j < num; j++)
+//     {
+//       if (i + j >= 0 && i + j < strip.numPixels())
+//       {
+//         int red_after = red - instance * j;
+//         int green_after = green - instance * j;
+//         int blue_after = blue - instance * j;
+//         if (j >= 1)
+//         {
+//           red_after -= 200;
+//           green_after -= 200;
+//           blue_after -= 200;
+//         }
+//         strip.setPixelColor(i + j, strip.Color(red_after >= 0 ? red_after : 0, green_after >= 0 ? green_after : 0, blue_after >= 0 ? blue_after : 0));
+//       }
+//     }
+//     if (i + num >= 0 && i + num < strip.numPixels())
+//       strip.setPixelColor(i + num, 0);
+
+//     strip.show();
+//     delay(wait);
+//   }
+// }
+
+esp_err_t spi_write(spi_device_handle_t spi, uint8_t *data, uint8_t len)
+{
+    esp_err_t ret;
+    spi_transaction_t t;
+    if (len == 0)
+        return;               // no need to send anything
+    memset(&t, 0, sizeof(t)); // Zero out the transaction
+
+    gpio_set_level(PIN_NUM_CS, 0);
+
+    t.length = len * 8;                         // Len is in bytes, transaction length is in bits.
+    t.tx_buffer = data;                         // Data
+    t.user = (void *)1;                         // D/C needs to be set to 1
+    ret = spi_device_polling_transmit(spi, &t); // Transmit!
+    assert(ret == ESP_OK);                      // Should have had no issues.
+
+    gpio_set_level(PIN_NUM_CS, 1);
+    return ret;
+}
+
+esp_err_t spi_read(spi_device_handle_t spi, uint8_t *data)
+{
+    spi_transaction_t t;
+
+    gpio_set_level(PIN_NUM_CS, 0);
+
+    memset(&t, 0, sizeof(t));
+    t.length = 8;
+    t.flags = SPI_TRANS_USE_RXDATA;
+    t.user = (void *)1;
+    esp_err_t ret = spi_device_polling_transmit(spi, &t); // SPI 设备轮询
+    assert(ret == ESP_OK);
+    *data = t.rx_data[0];
+
+    gpio_set_level(PIN_NUM_CS, 1);
+
+    return ret;
+}
+
+void queue_write(spi_device_handle_t spi, RGB_color_t *rgb_t, uint8_t len)
+{
+    uint8_t times = len / 10;
+    uint8_t residue = len % 10; // 剩余SPI 需要发送的长度
+    // 发送次数
+    // uint8_t cycle_count = 10;
+    for (size_t i = 0; i < times; i++)
+    {
+        for (size_t j = 0; j < 10; j++)
+        {
+            spi_write(spi, &rgb_t[j], sizeof(RGB_color_t));
+        }
+    }
+    for (size_t i = 0; i < residue; i++)
+    {
+        spi_write(spi, &rgb_t[i], sizeof(RGB_color_t));
+    }
+}
+
+void app_main(void)
+{
+    esp_err_t ret;
+    spi_device_handle_t spi;
+    ESP_LOGI(TAG, "Initializing bus SPI%d...", SPI2_HOST + 1);
+
+    spi_bus_config_t buscfg = {
+        .miso_io_num = PIN_NUM_MISO, // MISO信号线
+        .mosi_io_num = PIN_NUM_MOSI, // MOSI信号线
+        .sclk_io_num = PIN_NUM_CLK,  // SCLK信号线
+        .quadwp_io_num = -1,         // WP信号线，专用于QSPI的D2
+        .quadhd_io_num = -1,         // HD信号线，专用于QSPI的D3
+        .max_transfer_sz = 64 * 8,   // 最大传输数据大小
+    };
+
+    spi_device_interface_config_t devcfg = {
+        // .clock_speed_hz = SPI_MASTER_FREQ_8M, // Clock out at 10 MHz,
+        .clock_speed_hz = SPI_MASTER_FREQ_8M, // Clock out at 10 MHz,
+        .mode = 0,                            // SPI mode 0
+        /*
+         * The timing requirements to read the busy signal from the EEPROM cannot be easily emulated
+         * by SPI transactions. We need to control CS pin by SW to check the busy signal manually.
+         */
+        .spics_io_num = -1,
+        .queue_size = 15, // 传输队列大小，决定了等待传输数据的数量
+    };
+    // Initialize the SPI bus
+    ret = spi_bus_initialize(SPI2_HOST, &buscfg, DMA_CHAN); // SPI 总线的初始化 总线包含 MISO,MOSI,CLK,默认空闲高低电平,传输数据大小
+    ESP_ERROR_CHECK(ret);
+
+    ret = spi_bus_add_device(SPI2_HOST, &devcfg, &spi); // spi 设备初始化 设备包含: 时钟、模式、硬件片选IO、传输队列
+    ESP_ERROR_CHECK(ret);
+
+    gpio_pad_select_gpio(PIN_NUM_CS);                 // 选择一个GPIO
+    gpio_set_direction(PIN_NUM_CS, GPIO_MODE_OUTPUT); // 把这个GPIO作为输出
+
+    // uint8_t red[3] = {4, 13, 4}; // G R B
+    // uint8_t red[3] = {40, 130, 40}; // G R B
+    // uint8_t red[3] = {80, 255, 80}; // G R B
+    // uint8_t red[3] = {128, 128, 128}; // G R B
+    // uint8_t red[3] = {0, 0, 255};   // G R B
+    uint8_t red[3] = {255, 255, 0};            // G R B  // 黄灯
+    uint8_t test_theaterChase[3] = {32, 0, 0}; // G R B  // 黄灯
+
+    // RGB_color_t send_rgb_arr_test[10] = {}; // TODO: 先以10 个灯珠为例，依次发送
+    // // RGB_color_t *send_rgb_arr_test2 = (RGB_color_t *)malloc(sizeof(RGB_color_t) * 10); // 在堆中开辟数组
+    // for (size_t i = 0; i < 10; i++)
+    // {
+    //     dec_spisend_data(&red, &send_rgb_arr_test[i]);
+    // }
+    while (1)
+    {
+        // queue_write(spi, &send_rgb_arr_test, 130); // 数据连续发送
+        // rainbowCycle(spi);
+        // rainbow(spi);
+        // theaterChase(spi, test_theaterChase); // 取名为觥筹交错,挺难看的.效果
+        // theaterChaseRainbow(spi);
+        meteor(spi, 255, 0, 255);
+
+        ESP_ERROR_CHECK(ret);
+        ESP_LOGI(TAG, "spi_write res =  %d", ret);
+        // vTaskDelay(20);
+    }
+}
+
+
+```
+
 
 
 
