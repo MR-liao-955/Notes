@@ -2,7 +2,16 @@
 
 > 起因：
 
-&emsp;&emsp;我在阅读 ESP32 中 RMT 外设驱动 Dshot 电调协议的时候遇到的 C 语言语法问题，这个结构体的用法未曾见过，它是在结构体中定义了一个
+&emsp;&emsp;我在阅读 ESP32 中 RMT 外设驱动 Dshot 电调协议的时候遇到的 C 语言语法问题，这个结构体的用法未曾见过，它是在结构体中定义了一个 `函数指针`，指针后面括号了形参，这种写法之前没遇到过特此记录。
+
+```c
+struct rmt_encoder_t {
+     */ // 下方是一个函数，返回类型为 size_t
+    size_t (*encode)(rmt_encoder_t *encoder, rmt_channel_handle_t tx_channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state);
+}
+```
+
+
 
 > 目录:
 
@@ -16,7 +25,7 @@
 
 - `typedef struct rmt_encoder_t rmt_encoder_t;` 结构体定义，使用 `rmt_encoder_t` 新的结构体对象创建 `rmt_encoder_t `。该方法的作用是类似于接口的定义。更抽象。。
 
-  ![image-20231117111025251](TODO%EF%BC%9AC%E8%AF%AD%E8%A8%80%E4%B8%AD%20%E7%BB%93%E6%9E%84%E4%BD%93%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88%E5%AE%9A%E4%B9%89%E5%92%8C%E5%AE%9E%E7%8E%B0(typedef%20%E5%AE%9A%E4%B9%89%E7%BB%93%E6%9E%84%E4%BD%93%E6%8E%A5%E5%8F%A3).assets/image-20231117111025251.png)
+  ![image-20231117111025251](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311171659428.png)
 
   ```c
   /**
@@ -135,7 +144,7 @@
 
 作用：通过结构体对象获取整个结构体的指针。
 
-![image-20231117154557431](TODO%EF%BC%9AC%E8%AF%AD%E8%A8%80%E4%B8%AD%20%E7%BB%93%E6%9E%84%E4%BD%93%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88%E5%AE%9A%E4%B9%89%E5%92%8C%E5%AE%9E%E7%8E%B0(typedef%20%E5%AE%9A%E4%B9%89%E7%BB%93%E6%9E%84%E4%BD%93%E6%8E%A5%E5%8F%A3).assets/image-20231117154557431.png)
+![image-20231117154557431](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311171659430.png)
 
 ```c
 /*************** 代码出处 *****************/
