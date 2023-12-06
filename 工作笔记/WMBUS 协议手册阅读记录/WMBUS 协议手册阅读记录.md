@@ -6,14 +6,14 @@
 
   由于原文档为英文文档，而机翻文档阅读起来有点难以理解。因此作此文档，但该文档有部分语言为自述，未必准确。
 
-  | 简写名 |                         全称( 中文 )                         |
-  | :----: | :----------------------------------------------------------: |
-  |  HES   |          头部终端系统 ( 理解为一种数据处理的网关 )           |
-  |  DCU   |    数据采集单元 ( 理解为一种设备( 可以外接各种传感器 ) )     |
+  | 简写名 | 全称( 中文 )                                                 |
+  | :----: | :----------------------------------------------------------- |
+  |  HES   | 头部终端系统 ( 理解为一种数据处理的网关 )                    |
+  |  DCU   | 数据采集单元 ( 理解为一种设备( 可以外接各种传感器 ) )        |
   |  CSV   | 逗号分隔值 ( Comma Separated Values )( 我认为就是一种逗号分隔的数据库格式 ) .csv |
-  |  MSN   |                           表序列号                           |
-  |  USN   |                     单元序列号( 理解为 )                     |
-  |  GST   |               Gulf Standard Time ( 一个时区 )                |
+  |  MSN   | 表序列号                                                     |
+  |  USN   | 单元序列号( 理解为 )                                         |
+  |  GST   | Gulf Standard Time ( 一个时区 )                              |
   |        |                                                              |
   |        |                                                              |
   |        |                                                              |
@@ -180,16 +180,17 @@
   02 - Deleted (如果表被删除掉，然后就会被设置为 Delete flag, DC用来停止读表)
   03 - connect / reconnect 
   04 - disconnect
-  05 - 上传加密的 key 到 WMBUS 设备们
-  			
+  05 - 上传加密的 key 到 WMBUS 设备们			
   ```
-
+  
   > 如果状态码是 5 那么格式会变为如下
-
+  
   格式：MSN, USN, 制造商代码，05，密钥(encryption_key)
-
+  
   ![image-20231110180634768](WMBUS%20%E5%8D%8F%E8%AE%AE%E6%89%8B%E5%86%8C%E9%98%85%E8%AF%BB%E8%AE%B0%E5%BD%95.assets/image-20231110180634768.png)
-
+  
+  
+  
   
 
 ##### 3.2 Meter Configuration- DCU to HES  表配置DCU->HES
@@ -210,6 +211,8 @@
 
   
 
+  
+  
   ---
 
 #### 4. Time Synchronization of Data Concentrator   DCU的时间同步
@@ -230,7 +233,7 @@
 
 ![image-20231110175904761](WMBUS%20%E5%8D%8F%E8%AE%AE%E6%89%8B%E5%86%8C%E9%98%85%E8%AF%BB%E8%AE%B0%E5%BD%95.assets/image-20231110175904761.png)
 
-##### 6.1 DCU Events/Alarms- DCU to HES    
+##### 6.1 DCU Events/Alarms- DCU to HES
 
 文件名格式: DCWAXXXXX_DCU_EVENT_DDMMYYHHMM.csv
 
