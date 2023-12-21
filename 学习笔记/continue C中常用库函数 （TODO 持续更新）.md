@@ -650,9 +650,98 @@ void value_expand(uint8_t data, uint16_t *arr)
 
 
 
+##### 7. 检查数组是否有重复值(算法)
 
+设计原则,  创建临时数组，并设置标志位。
 
+```c
+/**
+ 	array[i]    					---> 待检查的数组
+	valuesAsIndexes[array[i]]		---> 临时保存用的数组
+*/
+bool invalid = false;
+int valuesAsIndexes[size]; // 初始化数组
+for (unsigned i = 0; i < size; i++)
+{
+    valuesAsIndexes[i] = -1;
+}
 
+// 检查是否有重复值[算法]
+if (!invalid)  // 检查是否有重复值[算法]。值得学
+{
+    for (unsigned i = 0; i < size; i++)
+    {
+        /*
+                    假设array[4] = {2, 1, 3, 2}
+                    val[2] = 2
+                    val[1] = 1
+                    val[3] = 3
+                    val[2] != -1  ==> invalid = true ==> 数据重构
+                */
+        if (-1 != valuesAsIndexes[array[i]])  // 如果array[i]，有负数，则判断标志位非法
+        {
+            invalid = true;  // 如果没有重复值就设置标志位
+            break;
+        }
+        valuesAsIndexes[array[i]] = array[i]; // 重复值
+    }
+}
+```
+
+代码来源: 查看 AT32 的 Betaflight 源码中 dshot.c 中的函数，查看到找数组重复值的方法。
+
+```c
+void validateAndfixMotorOutputReordering(uint8_t *array, const unsigned size)
+{
+    bool invalid = false;
+    for (unsigned i = 0; i < size; i++)  // 确保数据不会超出范围才能使用下方的是否重复判断
+    {
+        if (array[i] >= size)
+        { // 数组值不能大于数组长度，否则标志位判断为非法
+            invalid = true;
+            break;
+        }
+    }
+    int valuesAsIndexes[size]; 
+    for (unsigned i = 0; i < size; i++)
+    {
+        valuesAsIndexes[i] = -1;
+    }
+    if (!invalid)  // 检查是否有重复值[算法]。值得学
+    {
+        for (unsigned i = 0; i < size; i++)
+        {
+            /*
+                假设array[4] = {2, 1, 3, 2}
+                val[2] = 2
+                val[1] = 1
+                val[3] = 3
+                val[2] != -1  ==> invalid = true ==> 数据重构
+            */
+            /*
+                假设array[4] = {2, 1, 7, 2}
+                val[2] = 2
+                val[1] = 1
+                val[7] = 7  // 显然没有 val[7]
+                val[2] != -1  ==> invalid = true ==> 数据重构
+            */
+            if (-1 != valuesAsIndexes[array[i]])  // 如果array[i]，有负数，则判断标志位非法
+            {
+                invalid = true;
+                break;
+            }
+            valuesAsIndexes[array[i]] = array[i];
+        }
+    }
+    if (invalid)
+    { // 如果数组值中但凡有一个大于数组长度，数组就重置为 {0,1,2,....,7}
+        for (unsigned i = 0; i < size; i++)
+        {
+            array[i] = i;
+        }
+    }
+}
+```
 
 
 
