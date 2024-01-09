@@ -25,7 +25,7 @@ struct rmt_encoder_t {
 
 - `typedef struct rmt_encoder_t rmt_encoder_t;` 结构体定义，使用 `rmt_encoder_t` 新的结构体对象创建 `rmt_encoder_t `。该方法的作用是类似于接口的定义。更抽象。。
 
-  ![image-20231117111025251](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311171659428.png)
+  <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202311171659428.png" alt="image-20231117111025251"  />
 
   ```c
   /**

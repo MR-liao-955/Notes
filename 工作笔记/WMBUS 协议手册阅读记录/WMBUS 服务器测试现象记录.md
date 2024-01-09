@@ -530,21 +530,29 @@ DCWA19088,10.0.0.233,21-11-2023 14:11
 
 -- -
 
-> 2023-12-6
+> 2023-12-21
 
 新版本SFTP 测试
 
+1. CONFIGURATION_IN 中存放错误的文件也会导致 CONFIGURATION_OUT 文件夹中的所有文件被删除。可能导致的后果: 如果不小心放入错误的配置文件，回导致 CONFIGURATION_OUT 文件的内容清空，从而不会重新读表数据。
+
+2. emmmm，METER_READ_OUT_FOLDER 文件夹中的读表数据文件生成数量不对头。。。还待查明现象
+
+   目前现象，可能METER_OUT 生成的文件来自 CONFIG_IN 中的 `TEST00023_SETUP_VER_...csv` ( 因为它的MSN 中出现了 81442546, 而别的配置文件没有 )。
+
+   ![image-20231221153006065](WMBUS%20%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B5%8B%E8%AF%95%E7%8E%B0%E8%B1%A1%E8%AE%B0%E5%BD%95.assets/image-20231221153006065.png)
+
+   现象说明: 放入 4 个 CONFIG_IN 文件，只会读取其中前三个的表，而且 CONFIGURATION_OUT 中的文件，只显示了第三个 CONFIG_IN 文件，
+
+
+
+#### Article END
 
 
 
 
-##### Article END
 
-
-
-
-
-
+<img src="WMBUS%20%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B5%8B%E8%AF%95%E7%8E%B0%E8%B1%A1%E8%AE%B0%E5%BD%95.assets/image-20240108180713164.png" alt="image-20240108180713164" style="zoom:150%;" />
 
 
 
