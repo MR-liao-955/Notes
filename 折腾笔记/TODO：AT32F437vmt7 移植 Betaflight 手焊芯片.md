@@ -268,6 +268,18 @@ scheduler
 
 ###### bmi270 与 bmi088 (陀螺仪&加速度计)
 
+- bmi270 驱动函数位于 './src/main/drivers/accgyroaccgyro_spi_bmi270_init.c && accgyro_spi_bmi270.c' 文件中。
+
+
+
+- 注意：Betaflight 中各类总线 ( BUS ) 是 Betaflight 实现的驱动，而不同的 MCU 芯片驱动要适配到 Betaflight。
+
+
+
+- 关于传感器驱动，部分初始化代码是传感器官网提供的驱动函数
+
+
+
 
 
 ###### 硬件访问层
@@ -404,6 +416,31 @@ scheduler
 
 
 
+##### 宏定义 \#define PG_DECLARE(_type, _name) 作为接口
+
+- 代码出处
+
+  ```c
+  // Declare system config
+  #define PG_DECLARE(_type, _name)                                        \
+      extern _type _name ## _System;                                      \
+      extern _type _name ## _Copy;                                        \
+      static inline const _type* _name(void) { return &_name ## _System; }\   // 内联函数
+      static inline _type* _name ## Mutable(void) { return &_name ## _System; }\ //
+      struct _dummy                                                       \
+      /**/
+  ```
+
+- [C语言中“##”的独特用法](https://blog.51cto.com/u_15091053/2616782)
+
+- 初步理解：外联的 '_name_System' 的函数，获取它的引用地址，但是并未找到 _name_System 这部分的定义。(理论上说应该有外部 gyroConfig_System 函数)
+
+- 
+
+  
+
+
+
 ##### 之前看的 ESP32 部分 Dshot 协议驱动电机代码记录
 
 - 这部分 Dshot 代码和 betaflight 的传感器代码有异曲同工之妙 ( 指的是结构体定义函数指针，并在外部实现它)
@@ -413,6 +450,25 @@ scheduler
 ##### Betaflight 正式代码阅读
 
 
+
+##### temp
+
+- 构造函数和析构的顺序
+
+  ```bash
+  # 如果通过父类创建子类对象，构造时先调用父类构造函数，在调用子类构造。
+  # 析构时先析构子类，然后再析构父类对象。
+  ```
+
+  ```bash
+  
+  
+  
+  ```
+
+  
+
+  
 
 
 

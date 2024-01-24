@@ -2,259 +2,261 @@
 
 [toc]
 
-- string 数据处理
+### 常用库函数
 
-  1.  strstr( ) 查找子串
+##### string 数据处理
 
-     ```c
-     /*
-     匹配test_rx_buf 中是否有 "upload",如有就返回其索引
-     函数返回值是一个指向第一次出现子字符串的指针，如果未找到子字符串，则返回NULL
-     */
-     if (strstr(test_rx_buf, "upload") != NULL)
-     {
-         upload_suc = 1;
-         break;
-     }
-     ```
+1.  strstr( ) 查找子串
 
-  2. atoi( ) 字符串转数组( 后面自建函数我也自己写了一个仿atoi( ) 函数 )
+   ```c
+   /*
+   匹配test_rx_buf 中是否有 "upload",如有就返回其索引
+   函数返回值是一个指向第一次出现子字符串的指针，如果未找到子字符串，则返回NULL
+   */
+   if (strstr(test_rx_buf, "upload") != NULL)
+   {
+       upload_suc = 1;
+       break;
+   }
+   ```
 
-     ```c
-     // atoi 将字符串转化为数字
-     int main() {
-         const char *str = "12345";
-         int value = atoi(str);
-     
-         printf("String: %s\n", str);
-         printf("Integer value: %d\n", value);
-     
-         return 0;
-     }
-     // str_toNumb(recv_FLASH, strlen(recv_FLASH));  // 后面我也自建了函数
-     ```
+2. atoi( ) 字符串转数组( 后面自建函数我也自己写了一个仿atoi( ) 函数 )
 
-  3. itoa( ) 函数与 sprintf( ) 函数。
+   ```c
+   // atoi 将字符串转化为数字
+   int main() {
+       const char *str = "12345";
+       int value = atoi(str);
+   
+       printf("String: %s\n", str);
+       printf("Integer value: %d\n", value);
+   
+       return 0;
+   }
+   // str_toNumb(recv_FLASH, strlen(recv_FLASH));  // 后面我也自建了函数
+   ```
 
-     ```c
-     //sprintf() 函数，将格式化数据输出到字符串中。
-     /*
-     	玩法多样：可以转char为string 也可以转化为int为string，float 也能转
-     */
-         char devreg[64] = {0};
-         sprintf(devreg, "{\"title\":\"%s\",\"sn\":\"%s\"}", devsn, devsn);
-     	sprintf(res_jsonStr, "%d", res->valueint);
-     
-     
-     // itoa() 不是标准C库函数，但是某些编译器提供了这个函数。
-     /* 
-     	它接收一个整数和一个字符数组，并将整数转化为字符串
-     */
-     void test2() {  
-         int number = 12345;
-         char str[20];
-     
-         itoa(number, str, 10);
-     
-         printf("Number: %d\n", number);
-         printf("String: %s\n", str);
-     }
-     
-     ```
+3. itoa( ) 函数与 sprintf( ) 函数。
 
-  4. strlen( ) 函数，输出 字符数组的长度
+   ```c
+   //sprintf() 函数，将格式化数据输出到字符串中。
+   /*
+   	玩法多样：可以转char为string 也可以转化为int为string，float 也能转
+   */
+       char devreg[64] = {0};
+       sprintf(devreg, "{\"title\":\"%s\",\"sn\":\"%s\"}", devsn, devsn);
+   	sprintf(res_jsonStr, "%d", res->valueint);
+   
+   
+   // itoa() 不是标准C库函数，但是某些编译器提供了这个函数。
+   /* 
+   	它接收一个整数和一个字符数组，并将整数转化为字符串
+   */
+   void test2() {  
+       int number = 12345;
+       char str[20];
+   
+       itoa(number, str, 10);
+   
+       printf("Number: %d\n", number);
+       printf("String: %s\n", str);
+   }
+   
+   ```
 
-     ```c
-     // 以socket 的send() 函数为例
-     ret = send(socketid, args, strlen(args), 0);
-     ```
+4. strlen( ) 函数，输出 字符数组的长度
 
-  5. strcat( ) 函数，将字符串添加到 字符串尾部
+   ```c
+   // 以socket 的send() 函数为例
+   ret = send(socketid, args, strlen(args), 0);
+   ```
 
-     ```c
-     // 这一块字符串拼接，拼接到sendMESSAGE
-     char sendMESSAGE[109] = {0};
-     strcat(sendMESSAGE, uploadDATA.sim_Info.imei);
-     strcat(sendMESSAGE, uploadDATA.sim_Info.imsi);
-     strcat(sendMESSAGE, uploadDATA.sim_Info.iccid);
-     strcat(sendMESSAGE, temp);
-     ```
+5. strcat( ) 函数，将字符串添加到 字符串尾部
 
-  6. strncpy( ) 函数，
+   ```c
+   // 这一块字符串拼接，拼接到sendMESSAGE
+   char sendMESSAGE[109] = {0};
+   strcat(sendMESSAGE, uploadDATA.sim_Info.imei);
+   strcat(sendMESSAGE, uploadDATA.sim_Info.imsi);
+   strcat(sendMESSAGE, uploadDATA.sim_Info.iccid);
+   strcat(sendMESSAGE, temp);
+   ```
 
-     ```c
-     // 字符串拷贝 最后一个参数是要复制的字符数
-     strncpy(OutputStr, strBuff, BuffLen); // 将strBuff复制到OutputStr
-     ```
+6. strncpy( ) 函数，
 
-  7. strncmp( ) 函数，
+   ```c
+   // 字符串拷贝 最后一个参数是要复制的字符数
+   strncpy(OutputStr, strBuff, BuffLen); // 将strBuff复制到OutputStr
+   ```
 
-     ```c
-     // 用于对比 str1 和str2 的前5个字符是否相等
-     /*
-     	完全相等返回0，
-     	如果str1前面某个数 字典顺序小于 str2 返回负数，
-     	如果str1前面某个数 字典顺序大于 str2 返回正数。
-     */
-     
-     const char *str1 = "Hello";
-     const char *str2 = "Hello, World!";
-     int result = strncmp(str1, str2, 5);
-     ```
+7. strncmp( ) 函数，
 
-     
+   ```c
+   // 用于对比 str1 和str2 的前5个字符是否相等
+   /*
+   	完全相等返回0，
+   	如果str1前面某个数 字典顺序小于 str2 返回负数，
+   	如果str1前面某个数 字典顺序大于 str2 返回正数。
+   */
+   
+   const char *str1 = "Hello";
+   const char *str2 = "Hello, World!";
+   int result = strncmp(str1, str2, 5);
+   ```
 
-
-
-- 网络编程 && socket 之类的函数
-
-  
-
-  1. setsockopt( ) 函数，定义发送/接收 阻塞超时时间。[参考地址，详解](https://blog.csdn.net/A493203176/article/details/65438182)
-  
-     ```c
-     // socket 或者 tcp 发送/接收请求(阻塞)定义超时
-     struct timeval tv_out;
-     tv_out.tv_sec = 5;
-     tv_out.tv_usec = 0;
-     setsockopt(socketid, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv_out, sizeof(tv_out));
-     ```
-  
-  2. socket( ) 函数，本地生成socket
-  
-     ```c
-     socketid = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // 本地生成socketid 进程号
-     ```
-  
-  3. connect( ) 函数，与服务器建立TCP 长链接
-  
-     ```c
-     // tcp 建立连接所需的ip、端口、服务器端口号、脚本名。
-     typedef struct
-     {
-         char ip[16];
-         int16_t port;
-         char prod_id[16];
-         char spt_name[16];
-     } net_conf;
-     
-     net_conf s_conf = { // 建立socket 连接时 需要添加端口
-         "183.230.40.40",
-         1811,         // 服务器端口号
-         "596096",     // production_ID 产品ID
-         "newScript"   // 服务器上脚本的文件名
-     }; 
-     
-     struct sockaddr_in server_addr;
-     memset(&server_addr, 0, sizeof(server_addr));
-     server_addr.sin_len = sizeof(server_addr);
-     server_addr.sin_family = AF_INET;
-     server_addr.sin_port = htons(s_conf.port);
-     server_addr.sin_addr.s_addr = inet_addr(s_conf.ip); // 这里获取到IP 地址和端口，可以建立连接
-     
-     ret = connect(socketid, (const struct sockaddr *)&server_addr, sizeof(server_addr));
-     ```
-  
-  4. send( ) 函数，阻塞状态,直到发送完毕,与设备建立连接、向设备发送数据。(  本质都是一样的，都是发送数据。因为连接已经由connect() 函数建立 )
-  
-     ```c
-     // 发送报文，与设备建立连接
-     ret = send(socketid, args, strlen(args), 0);
-     ```
-  
-  5. recv( ) 函数，阻塞状态,直到收到服务器发过来的数据。(可以通过setsockopt( ) 定义阻塞超时时间 )
-  
-     ```c
-     // 接收服务器回传信息，传入char 型数组地址，用于存放服务器下发数据
-     ret = recv(socketid, test_rx_buf, sizeof(test_rx_buf), 0);
-     ```
-  
-     
-  
-  
-
-- 内存管理函数
-
-  1. memset( ) 函数，为特定的内存设置初值（通常和malloc 一起使用malloc 为它开辟堆空间）
-
-     ```c
-     // uart0_rx_buf 开辟的内存空间进行初始化。
-     static uint8_t uart0_rx_buf[128] = {0};
-     memset(uart0_rx_buf, 0, sizeof(uart0_rx_buf));
-     ```
-
-  2. memcpy( ) 函数，
-
-     ```c
-     uint8_t toArray[29] = {0};
-     int uint_SIZE = sizeof(uploadDATA.dev) + sizeof(uploadDATA.sensor);
-     
-     uint8_t *pStruct = &uploadDATA.dev.ver; // 创建结构体指针，
-     memcpy(toArray, pStruct, uint_SIZE);   //通过指针进行内存的拷贝，数据大小为uint8_t 需要转化为string 的长度
-     ```
-
-  3. malloc( ) 函数，分配动态内存
-
-     ```c
-     
-     // 下方使用malloc 开辟动态内存空间， 以下就是用malloc 模仿动态数组
-     int uint_SIZE = sizeof(uploadDATA.dev) + sizeof(uploadDATA.sensor);
-     uint8_t *const toArray = (uint8_t *)malloc(uint_SIZE); // 本质就是数组（指针常量，指针不可变，即为引用&）
-     ```
-
-     
-
-  4. free( ) 函数，释放分配的内存空间
-
-     ```c
-     // 释放之前malloc 开辟的堆
-     free(toArray);
-     ```
-
-- CJSON 
-
-  1. 结构体定义
-
-     ```c
-     cJSON *json;
-     cJSON *ac;
-     cJSON *res;
-     ```
-
-  2. cJSON_Parse( ) 函数，
-
-     ```c
-     // 将uart、TCP 接收的数据转化为JSON "结构体"
-     // 解析之后应当还能用子json 来解析
-     json = cJSON_Parse(test_rx_buf);
-     ```
-
-  3. cJSON_GetObjectItem( ) 函数，
-
-     ```c
-     // 在json 结构体中查找"ac" 对象。如果没有就返回NULL，或者ac->type 就变成cJSON_NULL 这个宏定义
-     ac = cJSON_GetObjectItem(json, "ac"); 
-     
-     if (ac == NULL || ac->type == cJSON_NULL) // 发包key 必须是ac
-     {
-         cm_demo_printf(" test_rx_buf don't include \"ac \" !!,recv MSG type error !\n ");
-         continue;
-     }
-     ```
-
-     
+   
 
 
 
-- 其它常用函数
+##### 网络编程 && socket 之类的函数
 
-  ```c
-  // TODO: 待整理
-  
-  
-  ```
 
-  
+
+1. setsockopt( ) 函数，定义发送/接收 阻塞超时时间。[参考地址，详解](https://blog.csdn.net/A493203176/article/details/65438182)
+
+   ```c
+   // socket 或者 tcp 发送/接收请求(阻塞)定义超时
+   struct timeval tv_out;
+   tv_out.tv_sec = 5;
+   tv_out.tv_usec = 0;
+   setsockopt(socketid, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv_out, sizeof(tv_out));
+   ```
+
+2. socket( ) 函数，本地生成socket
+
+   ```c
+   socketid = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // 本地生成socketid 进程号
+   ```
+
+3. connect( ) 函数，与服务器建立TCP 长链接
+
+   ```c
+   // tcp 建立连接所需的ip、端口、服务器端口号、脚本名。
+   typedef struct
+   {
+       char ip[16];
+       int16_t port;
+       char prod_id[16];
+       char spt_name[16];
+   } net_conf;
+   
+   net_conf s_conf = { // 建立socket 连接时 需要添加端口
+       "183.230.40.40",
+       1811,         // 服务器端口号
+       "596096",     // production_ID 产品ID
+       "newScript"   // 服务器上脚本的文件名
+   }; 
+   
+   struct sockaddr_in server_addr;
+   memset(&server_addr, 0, sizeof(server_addr));
+   server_addr.sin_len = sizeof(server_addr);
+   server_addr.sin_family = AF_INET;
+   server_addr.sin_port = htons(s_conf.port);
+   server_addr.sin_addr.s_addr = inet_addr(s_conf.ip); // 这里获取到IP 地址和端口，可以建立连接
+   
+   ret = connect(socketid, (const struct sockaddr *)&server_addr, sizeof(server_addr));
+   ```
+
+4. send( ) 函数，阻塞状态,直到发送完毕,与设备建立连接、向设备发送数据。(  本质都是一样的，都是发送数据。因为连接已经由connect() 函数建立 )
+
+   ```c
+   // 发送报文，与设备建立连接
+   ret = send(socketid, args, strlen(args), 0);
+   ```
+
+5. recv( ) 函数，阻塞状态,直到收到服务器发过来的数据。(可以通过setsockopt( ) 定义阻塞超时时间 )
+
+   ```c
+   // 接收服务器回传信息，传入char 型数组地址，用于存放服务器下发数据
+   ret = recv(socketid, test_rx_buf, sizeof(test_rx_buf), 0);
+   ```
+
+   
+
+
+
+##### 内存管理函数
+
+1. memset( ) 函数，为特定的内存设置初值（通常和malloc 一起使用malloc 为它开辟堆空间）
+
+   ```c
+   // uart0_rx_buf 开辟的内存空间进行初始化。
+   static uint8_t uart0_rx_buf[128] = {0};
+   memset(uart0_rx_buf, 0, sizeof(uart0_rx_buf));
+   ```
+
+2. memcpy( ) 函数，
+
+   ```c
+   uint8_t toArray[29] = {0};
+   int uint_SIZE = sizeof(uploadDATA.dev) + sizeof(uploadDATA.sensor);
+   
+   uint8_t *pStruct = &uploadDATA.dev.ver; // 创建结构体指针，
+   memcpy(toArray, pStruct, uint_SIZE);   //通过指针进行内存的拷贝，数据大小为uint8_t 需要转化为string 的长度
+   ```
+
+3. malloc( ) 函数，分配动态内存
+
+   ```c
+   
+   // 下方使用malloc 开辟动态内存空间， 以下就是用malloc 模仿动态数组
+   int uint_SIZE = sizeof(uploadDATA.dev) + sizeof(uploadDATA.sensor);
+   uint8_t *const toArray = (uint8_t *)malloc(uint_SIZE); // 本质就是数组（指针常量，指针不可变，即为引用&）
+   ```
+
+   
+
+4. free( ) 函数，释放分配的内存空间
+
+   ```c
+   // 释放之前malloc 开辟的堆
+   free(toArray);
+   ```
+
+##### CJSON 
+
+1. 结构体定义
+
+   ```c
+   cJSON *json;
+   cJSON *ac;
+   cJSON *res;
+   ```
+
+2. cJSON_Parse( ) 函数，
+
+   ```c
+   // 将uart、TCP 接收的数据转化为JSON "结构体"
+   // 解析之后应当还能用子json 来解析
+   json = cJSON_Parse(test_rx_buf);
+   ```
+
+3. cJSON_GetObjectItem( ) 函数，
+
+   ```c
+   // 在json 结构体中查找"ac" 对象。如果没有就返回NULL，或者ac->type 就变成cJSON_NULL 这个宏定义
+   ac = cJSON_GetObjectItem(json, "ac"); 
+   
+   if (ac == NULL || ac->type == cJSON_NULL) // 发包key 必须是ac
+   {
+       cm_demo_printf(" test_rx_buf don't include \"ac \" !!,recv MSG type error !\n ");
+       continue;
+   }
+   ```
+
+   
+
+
+
+##### 其它常用函数
+
+```c
+// TODO: 待整理
+
+
+```
+
+
 
 
 
@@ -742,6 +744,169 @@ void validateAndfixMotorOutputReordering(uint8_t *array, const unsigned size)
     }
 }
 ```
+
+
+
+##### 8. TODO: 双端数组循环队列
+
+[参考文档1](https://developer.aliyun.com/article/913853)
+
+- 需求如下
+
+  ```bash
+  MyCircularQueue(k): 构造器，设置队列长度为 k 。
+   Front: 从队首获取元素。如果队列为空，返回 -1 。
+  Rear: 获取队尾元素。如果队列为空，返回 -1 。
+  enQueue(value): 向循环队列插入一个元素。如果成功插入则返回真。
+  deQueue(): 从循环队列中删除一个元素。如果成功删除则返回真。
+  isEmpty(): 检查循环队列是否为空。
+  isFull(): 检查循环队列是否已满。
+  ```
+
+- 分析部分
+
+  1. 双端队列有一个好处就是节约CPU资源
+
+- 参考代码
+
+  ```c
+  typedef struct 
+  {
+      int* a; // 队列指针
+      int head; //队列头
+      int tail; //队尾
+      int k;  // 元素个数
+  } MyCircularQueue;
+  bool myCircularQueueIsEmpty(MyCircularQueue* obj) ;
+  bool myCircularQueueIsFull(MyCircularQueue* obj) ;
+  
+  /**
+  	author: unknown
+  	function: 创建循环队列。
+  */
+  MyCircularQueue* myCircularQueueCreate(int k)
+  {
+      //给结构体指针变量开辟空间，否则为野指针。
+      MyCircularQueue* new =(MyCircularQueue*)malloc(sizeof(MyCircularQueue));
+      int* b = (int*)malloc(sizeof(int)*(k+1));  // 分配一个 元素个数+1 的堆内存
+      new->a = b;      // 初始化队列的起始地址
+      new->head = 0;
+      new->tail = 0;
+      new->k = k;   	// 便于可以使用队列的对象来访问队列长度的个数
+      return new;
+  }
+  
+  /**
+  	循环队列的入队
+  */
+  bool myCircularQueueEnQueue(MyCircularQueue* obj, int value) 
+  {
+      assert(obj);
+      if(myCircularQueueIsFull(obj)) // 队满则返回
+      {
+          return false;
+      }
+      
+      obj->a[obj->tail] = value;  // 赋值给队列尾部
+      if(obj->tail == obj->k)		// 队列尾部和队列长度相等时
+      {
+          obj->tail = 0; // 重新指向0 ( 这里的0 并非一定是队首 )
+      }
+      else
+      {
+       obj->tail++; // 队尾+1
+      }
+      return true;
+  }
+  
+  bool myCircularQueueDeQueue(MyCircularQueue* obj)  // 出队函数
+   {
+       assert(obj);
+       if(myCircularQueueIsEmpty(obj)) 
+       {
+           return false;
+       }
+        if(obj->head == obj->k)  // 如果队首 == 队列尾部 ， 那么队首回到这个环形的起点
+       {
+          obj->head = 0;
+       }
+       else
+       {
+          obj->head++; 
+       }
+       return true;
+  }
+  
+  /**
+  	队首和队尾都在同一个位置时，表示队列满员。
+  	这里应该能拿到值的啊~
+  */
+  int myCircularQueueFront(MyCircularQueue* obj) 
+  {
+      assert(obj);
+      if(myCircularQueueIsEmpty(obj))
+      {
+          return -1;
+      }
+      return obj->a[obj->head];
+  
+  }
+  
+  int myCircularQueueRear(MyCircularQueue* obj)
+   {
+       assert(obj);
+       if(myCircularQueueIsEmpty(obj))
+       {
+           return -1;
+       }
+       if(obj->tail == 0)
+       {
+           return obj->a[obj->k]; // 当环形队列终点正好是队尾时 tail = 0.
+       }
+       return obj->a[obj->tail-1]; // 否则正常返回 tail - 1 
+  
+  }
+  
+  bool myCircularQueueIsEmpty(MyCircularQueue* obj) 
+  {
+      assert(obj);
+      return obj->head == obj->tail;	// 首和尾都在同一个队列中
+  }
+  
+  bool myCircularQueueIsFull(MyCircularQueue* obj) // 判断队列是否队满
+   {
+       assert(obj);
+       if(obj->head==0 && obj->tail == obj->k)  // head 为首部时而且 尾部值为k时
+       {
+           return true;
+       }
+       else
+       {
+           return obj->head == obj->tail+1; //头 == 尾部+1 表示队满 
+       }
+  }
+  
+  void myCircularQueueFree(MyCircularQueue* obj)  // 释放队列
+  {
+      assert(obj);
+      free(obj->a);
+      free(obj);
+  }
+  ```
+
+  
+
+
+
+##### 9. 用队列实现栈
+
+[参考文档1](https://developer.aliyun.com/article/913853)
+
+
+
+
+
+
 
 
 

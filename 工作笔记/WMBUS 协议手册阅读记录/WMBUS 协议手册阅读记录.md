@@ -109,6 +109,22 @@
 
   格式: DCWA、IP、设备商代码、日期时间、确认位
 
+
+
+##### 1.3 Multiple Data Row ACK ONE for each meter
+
+文件名格式： DCWAXXXXX_CONF_VER_DDMMYYHHMM_ACK.csv
+
+- 单行 
+
+  格式: DCWA、IP、
+
+- 多行
+
+  格式: 时间日期、表序列号、USN、设备商代码、质量标识、状态标识
+
+
+
 ---
 
 #### 2. On-Demand Meter data 按需取表数据
