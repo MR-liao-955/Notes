@@ -2,6 +2,77 @@
 
 [toc]
 
+
+
+### Linux 下常用库函数
+
+##### - #include <fcntl.h>
+
+###### open( )
+
+- 函数原型 [参考博客教程](https://cloud.tencent.com/developer/article/2091075)，与 ANSIC 标准 C 库中的 fopen( ) 类似。
+
+  ```c
+  // pathname 是绝对路径与文件名
+  /**	flags 表示采取操作:这三个必选项:O_RDONLY、O_WRONLY、O_RDWR(读写) 
+   *				    可选项: O_APPEND(追加)、O_CREATE(如果不存在就创建)、
+   *						   O_EXCL(如果要创建的文件存在，则出错并返回-1)、
+   *						   ....具体请看文档还有很多。
+   					附加项: O_DSYNC 灯带物理I/O结束后再 write。在不影响读取写入的数据前提下，不等待文件属性更新
+   						   O_RSYNC read 等待所有写入统一区域的写操作完成后再进行。
+   						   O_SYNC 等待所有的物理 I/O结束后再 write，包括更新文件属性的 IO
+   */
+  int open(const char *pathname, int flags);   
+  
+  /**
+  	参数 mode:
+      mode参数表示设置文件访问权限的初始值，和用户掩码umask有关，比如0644表示-rw-r–r–，也可以用S_IRUSR、S_IWUSR等宏定义按位或起来表示，详见open(2)的Man Page。要注意的是，有以下几点
+      1.文件权限由open的mode参数和当前进程的umask掩码共同决定。
+      2.第三个参数是在第二个参数中有O_CREAT时才作用，如果没有，则第三个参数可以忽略
+  */
+  int open(const char *pathname, int flags, mode_t mode);
+  ```
+
+
+
+
+
+##### - #include <linux/io.h> 旧版本Linux 内核函数
+
+###### writel( )
+
+- 这类相似函数还有很多
+
+  `readb()、readw()、writeb()、writew()`之类，他们的区别就是读写字节数的区别
+
+  1字节: readb( );   2字节: readw( );  4字节: readl( );
+
+- 函数原型 [参考博客](https://blog.51cto.com/u_15731880/5710061)
+
+  ```c
+  /*
+  形参: data:要写入的一字节数据；addr:32位I/O地址。
+  功能: 向内存映射的I/O空间上写数据，write() I/O上写入32位数据(4byte).
+  */
+  void writel(unsigned char data, unsigned int addr);
+  ```
+
+  
+
+###### readl( )
+
+- 函数原型
+
+  ```c
+  // 形参: addr: I/O地址
+  /*
+  	返回读到的值
+  */
+  unsigned char readl(unsigned int addr);
+  ```
+
+  
+
 ### 常用库函数
 
 ##### string 数据处理
@@ -102,6 +173,14 @@
    const char *str1 = "Hello";
    const char *str2 = "Hello, World!";
    int result = strncmp(str1, str2, 5);
+   ```
+
+8. strcmp( ) 函数，
+
+   ```c
+   //参数1 和参数2做比较，和strncmp 类似，只是没有个数的限制。
+   //！！ 但是如果传入的参数有 NULL 程序执行这部分就会崩溃 (哪怕不执行到调用这个函数的地方，整个程序依旧会直接崩)。
+   strcmp(NULL, "getprodinfo") == 0)
    ```
 
    
@@ -218,8 +297,8 @@
 1. 结构体定义
 
    ```c
-   cJSON *json;
-   cJSON *ac;
+   cJSON *json; // 用于接收字符串(比如串口发送过来的原始数据)
+   cJSON *ac;  // 一般用于解析字符串中的 k 值然后返回成 value
    cJSON *res;
    ```
 
@@ -244,7 +323,10 @@
    }
    ```
 
-   
+
+##### #incluede <json/json.h>
+
+TODO:
 
 
 

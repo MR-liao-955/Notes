@@ -89,7 +89,6 @@
 
   
 
-  
 
 >  内联函数和宏定义的区别：
 
@@ -99,37 +98,168 @@
 
 
 
-> `__typeof__`
+##### `__containerof(encoder, rmt_dshot_esc_encoder_t, base); `
 
-- 
+![image-20240227103951029](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240227103951029.png)
 
-> 
+![image-20240227102657973](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240227102657973.png)
+
+- 该知识点出处
+
+  1. 结构体声明部分
+
+     ```c
+     // 结构体声明部分
+     typedef struct
+     {
+         rmt_encoder_t base;   // 下方函数形参中 rmt_encoder_t *encoder 指明了该函数的基准
+         rmt_encoder_t *bytes_encoder;
+         rmt_encoder_t *copy_encoder;
+         rmt_symbol_word_t dshot_delay_symbol;
+         int state;
+     } rmt_dshot_esc_encoder_t;
+     
+     ```
+
+  2. __containerof( ) 宏定义函数调用部分
+
+     ```c
+     static size_t rmt_encode_dshot_esc(rmt_encoder_t *encoder, rmt_channel_handle_t channel,
+                                        const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state)
+     {
+         /*
+         这行代码的目的是通过 base 成员的指针 encoder 获取整个 rmt_dshot_esc_encoder_t 结构体的指针。
+         这种技巧常常用在数据结构设计中，特别是在嵌套结构体的情况下，以方便访问整个数据结构。
+         */
+         rmt_dshot_esc_encoder_t *dshot_encoder = __containerof(encoder, rmt_dshot_esc_encoder_t, base); // 获取到 rmt_dshot_esc_encoder_t 结构体指针
+     }
+     ```
+
+  3. __containerof() 宏定义声明部分
+
+     ```c
+     /******* offsetof() ********/
+     #ifndef offsetof
+     #define offsetof(type, member) ((long) &((type *) 0)->member)
+     #endif
+     
+     /******* __containerof() ********/
+     #if CONFIG_IDF_TARGET_LINUX && !defined(__containerof)
+     #define __containerof(ptr, type, member) ({         \
+         const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+         (type *)( (char *)__mptr - offsetof(type,member) );})
+     #endif
+     ```
+
+  
+
+- 说明
+
+  1. __containerof( ) 并不是 C 语言库中给定的函数，而是一种常见的技巧
+  2. 原理：通过内层结构体某个 **内层成员指针**、**外层结构体类型( 名字 ) **和 **内层结构体成员** ，来获取外层结构体指针。
+  3. 根据结构体定义，从偏移量来计算出外层结构体成员的寄存器地址。
+
+- 分析
+
+  个人理解：
+
+  1. `rmt_encoder_t *encoder` &emsp;encoder 为 rmt_encoder_t 结构体指针，它本来就是 堆 或者 栈 中的对象，而 `rmt_dshot_esc_encoder_t` 与 `base` 仅仅是 结构体名称 和结构体成员，他们并没有在实际的 堆、栈、全局区 的内存中。
+  2. 目的是使用 encoder 这个对象来 **获取 / 转化** 成为 `rmt_dshot_esc_encoder_t` 结构体对象。
+
+  
+
+##### `__typeof__()`
+
+- [参考地址1](https://www.cnblogs.com/wjw-blog/p/8722183.html)、[参考博客2](https://hackmd.io/@sysprog/c-trick)
+- `__typeof()` 、`__typeof__()` 是C语言的编译器特定扩展，因为标准C语言是不含这样的运算符的。标准C要求编译器用双下划线前缀扩展语言。（这也是为什么你不应该为自己的函数，变量加双下划线的原因）
+- 灵活的获取参数类型，在程序员不知道类型的情况下，来定义新的类型。
 
 
 
 #### typedef
 
+[参考博客](https://www.cnblogs.com/pam-sh/p/15232940.html)
 
+作用：给变量起别名、和struct 配合便于创建结构体、定义与平台无关的类型
 
+- 和宏定义有点类似，但是存在一定的区别。
 
+  1. typedef 会对定义的部分进行初步计算，然后再带入到调用的地方。
 
+     ```c
+     // #define用法例子：
+     #define f(x) x*x
+     int main()
+     {
+         int a=6, b=2, c;
+         c=f(a) / f(b);
+         printf("%d\n", c);
+         return 0;
+     }
+     // 计算结果是 c = 36
+     ```
 
+  2. #define 宏定义不做类型检查，仅仅是机械的字符串替换，而 typedef 会稍微处理一下
 
+  3. typedef 经常和 struct 搭配。
 
+- typedef 配合 struct 使得创建结构体更加方便。
+
+  1. 使用 typedef
+
+     ```c
+     typedef struct{
+         int a;
+         double b;
+     }my_struct;
+     my_struct struct1;  // 使用typedef 关键字定义结构体，之后创建结构体对象时可以省略 struct 关键字。
+     ```
+
+  2. 不使用 typedef
+
+     ```c
+     struct my_struct2{
+       	int a;
+         double b;
+     };
+     struct my_sturct2 struct2;  // 要多写一个 struct
+     ```
+
+- 注意：typedef 在语法上是一个存储类的关键字 ( auto, extern, static, register 等 )。使用时不要再额外添加存储类的关键字了，否则编译会报错。
+
+  ~~`typedef static int INT2;`~~ 会导致编译失败， 提示: " 指定了一个以上的存储类 "
+
+  ![image-20240229173624225](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240229173624225.png)
+
+  上图就是用相同的名字定义新的类型名。可能是为了实现接口函数之类
 
 #### macos 宏定义
 
 [参考博客](https://www.jb51.net/article/276400.htm)
 
-> 宏定义的返回值
+目前有内联函数之后，宏定义函数出现较少
 
 
+
+> 宏定义的返回值  [宏定义返回值和可变参数参考博客](https://cstriker1407.info/blog/macro-return-values-and-variable-argument-macros/)
+
+![image-20240229161029483](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240229161029483.png)
+
+- 写法 `#define func(a) ({ a = a+5;a;})`
+
+- 作用：。。。用到再说，我个人很少写宏定义函数的。
 
 
 
 > 宏定义展开
 
+- 可以配合 ``#ifndef MACOS_H` 、`#endif`来防止宏定义重名
 
+
+
+
+
+> 宏定义使用 # ## 连接
 
 
 
@@ -142,3 +272,5 @@
 
 
 #### extern 关键字
+
+- extern "C" 和 extern "C++" 函数声明

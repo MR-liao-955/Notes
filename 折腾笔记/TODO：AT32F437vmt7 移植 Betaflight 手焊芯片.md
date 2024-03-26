@@ -276,6 +276,8 @@ scheduler
 
 ###### bmi270 与 bmi088 (陀螺仪&加速度计)
 
+[BMI088 官网](https://www.bosch-sensortec.com/products/motion-sensors/imus/bmi088/)
+
 - bmi270 驱动函数位于 './src/main/drivers/accgyroaccgyro_spi_bmi270_init.c && accgyro_spi_bmi270.c' 文件中。
 
 
@@ -300,7 +302,7 @@ scheduler
 
 
 
-##### 滤波模块(代码部分)
+##### 滤波模块(代码部分) (放弃)
 
 - 单独提出该模块，因为这部分算法是在调度器中着重强调的。而且滤波方法可以用在别的方面。因此着重了解一下
 
