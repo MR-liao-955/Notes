@@ -103,7 +103,7 @@
 
 - VLAN 是二层网络中在数据帧上打上一个 VLAN 标签 ( PVID )，二层的设备根据标签来转发
 
-  ![image-20231206180733200](openWRT%20%E4%B8%AD%20VLAN%20%E5%88%92%E5%88%86.assets/image-20231206180733200.png)
+  ![image-20231206180733200](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081001447.png)
 
   参考部分拓扑图
 
@@ -119,7 +119,7 @@
   - 不参与：表示此 VLAN ID 号的数据包不通过此端口，等同于禁用端口。
   ```
 
-  ![image-20231207102006460](openWRT%20%E4%B8%AD%20VLAN%20%E5%88%92%E5%88%86.assets/image-20231207102006460.png)
+  ![image-20231207102006460](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081001448.png)
 
   <center> test </center>
 

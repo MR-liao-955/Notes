@@ -21,11 +21,11 @@
 
 - 剥离虚拟硬盘 , 并删除剥离掉的硬盘
 
-  ![image-20231213105929886](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/image-20231213105929886.png)
+  ![image-20231213105929886](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959817.png)
 
 - 将 OpenWRT 镜像拷贝到 PVE 的目录下 ( 重命名为 openwrt.img 方便添加硬盘镜像 )。参考路径 `/root/temp/openwrt.img`
 
-  ![image-20231213110504437](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/image-20231213110504437.png)
+  ![image-20231213110504437](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959818.png)
 
 - 添加磁盘到虚拟机上 ( 目前的虚拟机编号为 111 )
 
@@ -36,11 +36,11 @@
 
 - 添加磁盘 ( 引用参考博客的图，因为我已经弄好了，不想再做一次 )
 
-  ![https://cdn.jsdelivr.net/gh/weiwuji1/tupian@master/20211117/LEDE-13.pdnw1m2anvk.png](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/LEDE-13.pdnw1m2anvk.png)
+  ![https://cdn.jsdelivr.net/gh/weiwuji1/tupian@master/20211117/LEDE-13.pdnw1m2anvk.png](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959819.png)
 
   > 点击添加即可
 
-  ![https://cdn.jsdelivr.net/gh/weiwuji1/tupian@master/20211117/LEDE-14.1a98m7j03jhc.png](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/LEDE-14.1a98m7j03jhc.png)
+  ![https://cdn.jsdelivr.net/gh/weiwuji1/tupian@master/20211117/LEDE-14.1a98m7j03jhc.png](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959820.png)
 
   > 根据需要调整硬盘大小。
 
@@ -48,7 +48,7 @@
 
 - 设置引导顺序为刚才添加的磁盘
 
-  ![image-20231213111008897](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/image-20231213111008897.png)
+  ![image-20231213111008897](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959821.png)
 
 安装结束, 即可配置 OpenWRT
 
@@ -71,11 +71,11 @@
 
   2. 添加 Trojan 地址
 
-     ![image-20231213105419819](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/image-20231213105419819.png)
+     ![image-20231213105419819](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959822.png)
 
   3. 启动订阅
 
-     ![image-20231213105457546](OpenClash%20%E5%86%85%E6%A0%B8%E5%B4%A9%E6%BA%83%E4%BF%AE%E5%A4%8D%E6%96%87%E6%A1%A3.assets/image-20231213105457546.png)
+     ![image-20231213105457546](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080959823.png)
 
   4. R86S 软路由指定网关为 192.168.2.254 ( 搜索: 在 openWRT 下指定别的 IP 作网关 )
 

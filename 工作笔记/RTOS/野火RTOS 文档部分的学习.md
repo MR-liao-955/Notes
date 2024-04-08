@@ -369,7 +369,7 @@ FreeRTOS 为了启动任务和任务切换使用了三个异常: SVC、PendSV、
 
 3. PendSV ( 可挂起系统调用 ) 用于任务切换，它可以被高优先级中断打断。一般设置PendSV 为低优先级
 
-   ![image-20231128153326675](%E9%87%8E%E7%81%ABRTOS%20%E6%96%87%E6%A1%A3%E9%83%A8%E5%88%86%E7%9A%84%E5%AD%A6%E4%B9%A0.assets/image-20231128153326675.png)
+   ![image-20231128153326675](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081002082.png)
 
 
 
@@ -577,7 +577,7 @@ CPSIE F ;FAULTMASK=0   ;开异常
 
 - 任务状态迁移图
 
-  ![image-20231129143337702](%E9%87%8E%E7%81%ABRTOS%20%E6%96%87%E6%A1%A3%E9%83%A8%E5%88%86%E7%9A%84%E5%AD%A6%E4%B9%A0.assets/image-20231129143337702.png)
+  ![image-20231129143337702](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081002083.png)
 
   1. 创建任务 -> 就绪态 ( Ready ) : 任务创建完成后进入就绪态，表明任务已准备就绪，随时可以运行，只等待调度器进行调度。
   2. 就绪态 -> 运行态 ( Running ) : 发生任务切换时，就序列表中最高优先级的任务被执行，从而进入运行态。

@@ -145,7 +145,7 @@
 
 - 读设备数据存在获取字节长度异常。
 
-  ![image-20231205160859363](%E7%94%B5%E5%AD%90%E8%83%8C%E5%8C%85%20Modbus%20%E5%8D%8F%E8%AE%AE%E6%B5%8B%E8%AF%95%E8%AE%B0%E5%BD%95%20with%20OTA.assets/image-20231205160859363.png)
+  ![image-20231205160859363](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081000911.png)
 
   1. modbus 协议返回的数据长度有误，20 表示字节长度，而实际返回的长度为 32 byte .
   2. 后续的字节不知为何物 , 01 01 00 00 之后的 16 字节数据不确定是何种问题。
@@ -169,19 +169,19 @@
 
 - 往 0x06 地址写入数据，写完之后读不了它，无论是读很长一段的数据或者是就读它这一节，都无法读到。
 
-  ![image-20231205170454827](%E7%94%B5%E5%AD%90%E8%83%8C%E5%8C%85%20Modbus%20%E5%8D%8F%E8%AE%AE%E6%B5%8B%E8%AF%95%E8%AE%B0%E5%BD%95%20with%20OTA.assets/image-20231205170454827.png)
+  ![image-20231205170454827](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081000912.png)
 
   
 
 - 寄存器的属性如果没有 "write"，但是依旧使用功能码 0x10 "写"，它不会返回错误码( 应当返回错误码的 )，
 
-  ![image-20231205192843186](%E7%94%B5%E5%AD%90%E8%83%8C%E5%8C%85%20Modbus%20%E5%8D%8F%E8%AE%AE%E6%B5%8B%E8%AF%95%E8%AE%B0%E5%BD%95%20with%20OTA.assets/image-20231205192843186.png)
+  ![image-20231205192843186](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081000913.png)
 
-  ![image-20231205192826795](%E7%94%B5%E5%AD%90%E8%83%8C%E5%8C%85%20Modbus%20%E5%8D%8F%E8%AE%AE%E6%B5%8B%E8%AF%95%E8%AE%B0%E5%BD%95%20with%20OTA.assets/image-20231205192826795.png)
+  ![image-20231205192826795](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081000914.png)
 
 - 发送 DevEUI
 
-  ![image-20231205193802017](%E7%94%B5%E5%AD%90%E8%83%8C%E5%8C%85%20Modbus%20%E5%8D%8F%E8%AE%AE%E6%B5%8B%E8%AF%95%E8%AE%B0%E5%BD%95%20with%20OTA.assets/image-20231205193802017.png)
+  ![image-20231205193802017](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404081000915.png)
 
 
 

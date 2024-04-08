@@ -187,7 +187,7 @@ scheduler
 
   - 使用枚举来存放各类 task 数组下标
 
-    ![image-20240103145339015](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103145339015.png)
+    ![image-20240103145339015](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954905.png)
 
   - 创建结构体数组后使用枚举来进行结构体的初始化
 
@@ -200,7 +200,7 @@ scheduler
     }
     ```
 
-    ![image-20240103145555107](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103145555107.png)
+    ![image-20240103145555107](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954906.png)
 
 
 
@@ -220,7 +220,7 @@ scheduler
 
      > task.c
 
-     ![image-20240103155422479](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103155422479.png)
+     ![image-20240103155422479](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954907.png)
 
      
 
@@ -228,13 +228,13 @@ scheduler
 
      > main/sensors/arometer.c
 
-     ![image-20240103155756690](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103155756690.png)
+     ![image-20240103155756690](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954908.png)
 
      
 
   3. 注意看上方函数执行接口是调用的结构体的函数指针来执行
 
-     ![image-20240103155959855](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103155959855.png)
+     ![image-20240103155959855](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954909.png)
 
      
 
@@ -244,7 +244,7 @@ scheduler
      >
      > 其中的 bmp280Detect( baroDev_t *baro ) 函数会为结构体 baro 选定具体实现的函数。
   
-     ![image-20240103163056652](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240103163056652.png)
+     ![image-20240103163056652](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954910.png)
   
      
   
@@ -322,19 +322,19 @@ scheduler
 
 - 函数接口形式 ( 结构体定义函数接口，然后再外部强制转换进行实现 )
 
-  ![image-20240104114402698](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240104114402698.png)
+  ![image-20240104114402698](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954911.png)
 
   函数接口的具体实现 ( 将自定义)
 
-  ![image-20240104114429688](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240104114429688.png)
+  ![image-20240104114429688](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954912.png)
 
-  ![image-20240104114449989](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240104114449989.png)
+  ![image-20240104114449989](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954913.png)
 
 - 疑问点: 不同的滤波函数实现方法，调用位置未找到。
 
   回答: 在 gyro_init.c 中 `gyroInitLowpassFilterLpf( )` 函数中存在函数接口的指定实现 
 
-  ![image-20240105093210794](TODO%EF%BC%9AAT32F437vmt7%20%E7%A7%BB%E6%A4%8D%20Betaflight%20%E6%89%8B%E7%84%8A%E8%8A%AF%E7%89%87.assets/image-20240105093210794.png)
+  ![image-20240105093210794](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080954914.png)
 
   
 

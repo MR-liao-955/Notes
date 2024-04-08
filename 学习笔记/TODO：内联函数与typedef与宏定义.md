@@ -100,9 +100,9 @@
 
 ##### `__containerof(encoder, rmt_dshot_esc_encoder_t, base); `
 
-![image-20240227103951029](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240227103951029.png)
+![image-20240227103951029](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080957120.png)
 
-![image-20240227102657973](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240227102657973.png)
+![image-20240227102657973](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080957121.png)
 
 - 该知识点出处
 
@@ -229,7 +229,7 @@
 
   ~~`typedef static int INT2;`~~ 会导致编译失败， 提示: " 指定了一个以上的存储类 "
 
-  ![image-20240229173624225](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240229173624225.png)
+  ![image-20240229173624225](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080957122.png)
 
   上图就是用相同的名字定义新的类型名。可能是为了实现接口函数之类
 
@@ -243,7 +243,7 @@
 
 > 宏定义的返回值  [宏定义返回值和可变参数参考博客](https://cstriker1407.info/blog/macro-return-values-and-variable-argument-macros/)
 
-![image-20240229161029483](TODO%EF%BC%9A%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0%E4%B8%8Etypedef%E4%B8%8E%E5%AE%8F%E5%AE%9A%E4%B9%89.assets/image-20240229161029483.png)
+![image-20240229161029483](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404080957123.png)
 
 - 写法 `#define func(a) ({ a = a+5;a;})`
 
