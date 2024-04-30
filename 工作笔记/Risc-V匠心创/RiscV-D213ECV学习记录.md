@@ -142,7 +142,7 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
 &emsp;&emsp;在 ./d211/source/artinchip/test-gpio 中包含了 Gpio 的 CMake 示例工程，但是它无法正常地通过 CMake 编译，因为它报错缺失各类头文件，。以及找不到头文件的宏定义 (头文件选择错误)。
 
-##### - 自己编写的 CMakeLists.txt 来编译工程
+##### - 自己编写的 CMakeLists.txt 来编译工程  TODO://
 
 
 
@@ -247,7 +247,7 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
 > 自己手动写 Makefile ( 搞定 )
 
-
+具体参考笔记参考 A7608E 的 makefile，然后再自己重新写。
 
 
 
@@ -257,9 +257,28 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
 > 问题点
 
-1. 使用了 A7608E 的 uart 测试代码，发现只有 debug 口可以和电脑的 USB 转 TTL 通信。别的 Uart 口则无反应。
+&emsp;&emsp;使用了 A7608E 的 uart 测试代码，刷的 `d211_demo100_nand_defconfig` 固件，发现只有 debug 口可以和电脑的 USB 转 TTL 通信。别的 Uart 口则无反应。
 
-###### -- 解决过程根据官方文档，修改设备树
+###### -- 官方 defconfig 的 uart demo100 无法收发数据，修改设备树解决。
+
+- 在默认 defconfig 中 `d211_demo128_nand_defconfig` 能正常运行开发板上所有的 uart。而 demo100 只有debug 的串口有消息。
+
+  ![image-20240428180803433](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404291823507.png)
+
+- 询问厂家技术支持，得到模棱两可的回复。说的修改 pinmux ，实际上根本无从下手，后来对照了一下 demo100 和 demo128 的 .dts 设备树后发现了不同点。将 demo100 的修改成 demo128 的引脚映射 就能正常收发 uart 数据了。
+
+  ```shell
+  # demo128 的路径
+  ./source/target/d211/fountainhead_demo128_defconfig/board.dts
+  # demo100 的路径
+  ./source/target/d211/fountainhead_nand100_defconfig/board.dts
+  ```
+
+  ![image-20240428181718867](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404291823508.png)
+
+  
+
+- 吐槽: 匠心创在没有订单的时候技术支持又慢又不到位。
 
 
 
@@ -282,6 +301,33 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
 
 ##### - GPIO 驱动
+
+> 匠心创的方案：在 linux 内核 4.8 之后支持 GPIO 使用字符型接口
+>
+> 参考文档: http://www.pedestrian.com.cn/user/gpio/index.html
+
+&emsp;&emsp;采用 `/dev/gpiochipx ` 来实现 GPIO 控制。并采用 ioctrl( ) 函数来控制。
+
+
+
+问题点: 使用 gpiochipx 如何控制 GPIO？
+
+```shell
+#temp 后续删，下方的映射不一定对
+gpiochip6 -> PU
+# 用户层的GPIO 映射
+gpiochip3 -> PC
+gpiochip1 -> PD
+
+# 选择正确的 gpiochip* 
+可能需要查看
+
+
+```
+
+
+
+
 
 
 
