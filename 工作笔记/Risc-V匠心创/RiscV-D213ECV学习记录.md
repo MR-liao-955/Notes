@@ -2,6 +2,15 @@
 
 [toc]
 
+> 前言：
+
+1. 由于 Linux 部分内容太多了，因此该文档只是一个框架文档。具体细分还会写别的文档。
+2. 移植 openssh && sftp 请查阅别的文档。
+
+
+
+
+
 #### 一、Luban SDK
 
 [官方文档地址](http://artinchip.com/knowledge/topics/luban-sdk-overview-luban.html)
@@ -102,7 +111,7 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 - (中) `CMakeLists.txt` 文件编写中，设置源文件路径和头文件 路径需要先包含，一定要有一个顺序问题。
 
-  否则编译报错会莫名其妙
+  否则编译报错会莫名其妙。 (后续不采用 CMake, 对于小工程，还是采用 Makefile 来写)
 
 - (微小) size_t 改为为 unsigned char 或者 uint8_t。
 
@@ -116,13 +125,15 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 
 
-TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那个文件中并没有定义那个变量。
+- 解决 make 编译报错问题: 多重定义，但是我的 源码中那个文件中并没有定义那个变量。
 
-该编译器不支持头文件中存放定义( 声明 )。
+  方法：该编译器不支持头文件中存放定义( 声明 )。将头文件的声明全部注释，并在需要调用的地方 extern
 
-
-
-
+  > 缺点：这样各类全局变量看着就十分混乱。
+  >
+  > 优点：能简单解决问题，测试时候就这样快速是解决就好。
+  >
+  > 改进：专门拉一个头文件进来，需要修改的时候就使用 extern，需要引用的时候就 extern const
 
 
 
@@ -265,7 +276,7 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
   ![image-20240428180803433](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404291823507.png)
 
-- 询问厂家技术支持，得到模棱两可的回复。说的修改 pinmux ，实际上根本无从下手，后来对照了一下 demo100 和 demo128 的 .dts 设备树后发现了不同点。将 demo100 的修改成 demo128 的引脚映射 就能正常收发 uart 数据了。
+- 询问厂家技术支持，得到模棱两可的回复。说的修改 pinmux ，实际上根本无从下手，后来 **对照了一下 demo100 和 demo128 的 .dts 设备树** 后发现了不同点。将 demo100 的修改成 demo128 的引脚映射 就能正常收发 uart 数据了。
 
   ```shell
   # demo128 的路径
@@ -278,7 +289,302 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
   
 
-- 吐槽: 匠心创在没有订单的时候技术支持又慢又不到位。
+- 
+
+
+
+###### -- Uart 官方
+
+
+
+
+
+
+
+##### - GPIO 驱动
+
+> 匠心创的方案：在 linux 内核 4.8 之后支持 GPIO 使用字符型接口
+>
+> 参考文档: http://www.pedestrian.com.cn/user/gpio/index.html
+
+&emsp;&emsp;采用 `/dev/gpiochipx ` 来实现 GPIO 控制。并采用 ioctrl( ) 函数来控制。
+
+###### -- 遇到的问题: 官方 test_gpio_output 的 demo 跑不通
+
+- 现象如下：
+
+  ![image-20240508105755466](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146161.png)
+
+
+
+- 原因猜测：
+
+  1. 和 uart 一样，匠芯创未专门适配此开发板，并未对 demo 进行调整。由于我使用的是开发板 (PF15) 的一个按键充当 GPIO，因此考虑是 **设备树的问题** 引脚的问题。
+
+  2. 之前 Uart 问匠芯创时，他们说可能是 pinmux 的问题，但是并没给具体的问题解决思路... 但是我在 GPIO 这里的 './d211/target/d211/common/d211-pinctrl.dtsi' 文件下发现有 **PF15 的复用功能配置**
+
+     <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146162.png" alt="image-20240508111632313" style="zoom: 50%;" />
+
+     <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146163.png" alt="image-20240508111707566" style="zoom:50%;" />
+
+     <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146164.png" alt="image-20240508111737126" style="zoom:50%;" />
+
+     考虑与上述引脚复用有关系.
+
+  3. 根据串口工具提示的 `pin PF15 already requested by 18610000.codec; cannot claim for PF:95` 报错 , 而且在 './d211/target/d211/common/d211.dtsi' 文件下发现此路径对应的 codec 设备树点。
+
+     <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146165.png" alt="image-20240508112103791" style="zoom:50%;" />
+
+  4. 因此去 './d211/target/d211/fountainhead_demo128/board.dts' 中查找 codec 节点并注释它。
+
+     <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146166.png" alt="image-20240508113522029" style="zoom:80%;" />
+
+  5. 重新编译 Linux 镜像并烧录，打开 PF15 官方 demo 就不报错了！！正常运行，且隔 1s 电平反转一次。
+
+     ![image-20240508113811897](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405081146167.png)
+
+
+
+###### -- GPIO 驱动流程
+
+> TODO: 修改输出电平能力
+
+
+
+
+
+> GPIO 流程
+>
+> Linux下include/uapi/linux/gpio.h 库官方API文档 https://docs.kernel.org/userspace-api/gpio/chardev.html
+
+1. 使用常规的 open( ) 函数获取到 gpio 的 fd。注意 `gpiochipx`  仅仅表示 gpio 组，例如 PF15 为 `gpiochip5`，offset 为 15。PD4为 `gpiochip4`，offset 为 4.
+
+   ```c
+   // 我这里用到循环遍历所有的 gpiochip。。因此这里是数组。
+   int fd_gopen[gpiochips];
+   fd_gopen[i] = open(base_gname, O_RDWR); // base_gname 其实是 "/dev/gpiochipx"  x=1,2,3...
+   ```
+
+2. 配置 `struct gpio_v2_line_request req;` I/O 口的请求的结构体，用来获取设备的信息
+
+   <img src="RiscV-D213ECV%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.assets/image-20240508165628876.png" alt="image-20240508165628876" style="zoom: 80%;" />
+
+   ```c
+   // 创建结构体对象
+   struct gpio_v2_line_request req;
+   
+   // 设置你想要配置的选项 以及偏移量 (你所需要控制的IO)
+   memset(&req, 0, sizeof(req));
+   req.config.flags |= GPIO_V2_LINE_FLAG_OUTPUT;  // 配置 GPIO 方向
+   req.num_lines = 1; //请求的GPIO数量，一次可以请求多个，以简化管理。
+   req.offsets[0] = 15; // 设置偏移量，我们配置的 PF15，因此这里设置为15 
+   strcpy(req.consumer, "gpio output pin"); // 用户配置的描述信息，(随便写都行)
+   
+   ```
+
+   
+
+3. 使用 ioctl( ) 函数获取到设备描述符的信息。
+
+   目的: 将 req 的地址传入，用来获取对 GPIO 的 `lfd` 操作描述符 ( 下一个步骤会提到 )。
+
+   注意: ioctl 函数属于比较底层的函数，有比他更高级的函数就尽量使用高级一点的。
+
+   ```c
+   // 我这里用到遍历所有的 gpiochip 因此 fd_gopen 是一个数组。。。
+   ret = ioctl(fd_gopen[i], GPIO_V2_GET_LINE_IOCTL, &req); 
+   ```
+
+   
+
+4. 使用 ioctl( ) 函数针对具体的 IO 进行操作 ( 拉高 / 拉低 )，通过 `req` 获取到的设备信息，得到具体 GPIO 的描述符 `lfd`
+
+   方法：通过 **`struct gpio_v2_line_values value`**  此结构体对象来进行对 IO 的操作
+
+   ioctl( ) 中的命令参数为 `GPIO_V2_LINE_SET_VALUES_IOCTL`
+
+   ```c
+   int lfd[gpiochips];
+   
+   // 创建控制命令的描述符
+   struct gpio_v2_line_values value;
+   value.mask = 1; // 掩码
+   value.bits = 1;	// 设置 GPIO 输出电平的高低
+   
+   // 获取具体的 GPIO 描述符。这里我用的遍历，所以 lfd 是数组
+   lfd[i] = req.fd;
+   // 使用控制命令 GPIO_V2_LINE_SET_VALUES_IOCTL 对 GPIO 的描述符进行写入
+   ret = ioctl(lfd[i], GPIO_V2_LINE_SET_VALUES_IOCTL, &value);
+   
+   sleep(3);
+   // 对电平进行反转
+   value.bits ^= 1;
+   ret = ioctl(lfd[i], GPIO_V2_LINE_SET_VALUES_IOCTL, &value);
+   ```
+
+
+
+##### - I2C 驱动
+
+> 吐槽：
+
+修改设备树引脚后Linux必须重新编译。。。uboot 或者 内核都要重新编译。费事
+
+
+
+> 目前 i2c0 可以正常驱动。但是 i2c2 无法识别 ( 盲猜还是设备树的问题 )
+>
+> 设备树引脚选择没问题。可能是电源驱动的问题
+
+破案了，外部上拉的问题，如果外接传感器，传感器有上拉电源也能驱动。
+
+
+
+
+
+
+
+
+
+##### - USB 作为 Device 连接电脑显示串口 (虚拟多串口)
+
+> Linux 内核启用 Gadget 后接电脑，用来显示串口，并与之通信。
+
+这一部分跟着官方文档上走，注意要屏蔽掉 ADB 调试功能才能虚拟成 USB device
+
+
+
+
+
+> usb 虚拟多串口 TODO:// 暂时不做，网上资料很少。 先搞SSH
+
+
+
+```bash
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+mkdir g1
+cd g1
+echo "0x6666" > idVendor
+echo "0x6666" > idProduct
+mkdir strings/0x409
+ls strings/0x409/
+echo "0123456789" > strings/0x409/serialnumber
+echo "AIC Inc." > strings/0x409/manufacturer
+echo "Bar Gadget" > strings/0x409/product
+mkdir functions/acm.GS0
+mkdir configs/c.1
+ls configs/c.1
+mkdir configs/c.1/strings/0x409
+ls configs/c.1/strings/0x409/
+echo "ACM" > configs/c.1/strings/0x409/configuration
+ln -s functions/acm.GS0 configs/c.1
+
+echo `ls /sys/class/udc` > UDC
+
+```
+
+
+
+```bash
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+
+
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/c.1/f1
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/c.1/f2
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/c.1/f3
+
+
+```
+
+
+
+chatGPT 给出的提示
+
+执行后的现象：windows下依旧只会多出一个 usb 串行设备，而开发板Linux 下会多出几个 /dev/ttyGS0,1,2
+
+```bash
+# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+mkdir g1
+cd g1
+echo "0x6666" > idVendor
+echo "0x6666" > idProduct
+
+# 配置 USB 字符串描述符
+mkdir strings/0x409
+echo "0123456789" > strings/0x409/serialnumber
+echo "AIC Inc." > strings/0x409/manufacturer
+
+mkdir strings/0x410
+echo "0123456787" > strings/0x410/serialnumber
+echo "dearl Inc." > strings/0x410/manufacturer
+echo "Bar1 Gadget" > strings/0x410/product
+
+mkdir strings/0x411
+echo "0123456788" > strings/0x411/serialnumber
+echo "dearl2 Inc." > strings/0x411/manufacturer
+echo "Bar2 Gadget" > strings/0x411/product
+
+# 创建三个 ACM 功能并为每个功能创建一个配置
+mkdir -p functions/acm.GS0
+mkdir -p functions/acm.GS1
+mkdir -p functions/acm.GS2
+
+mkdir -p configs/c.1
+mkdir -p configs/c.2
+mkdir -p configs/c.3
+
+# 配置每个配置的字符串描述符
+mkdir -p configs/c.1/strings/0x409
+mkdir -p configs/c.2/strings/0x410
+mkdir -p configs/c.3/strings/0x411
+
+
+echo "ACM 1" > configs/c.1/strings/0x409/configuration
+echo "ACM 2" > configs/c.2/strings/0x410/configuration
+echo "ACM 3" > configs/c.3/strings/0x411/configuration
+
+# 将每个 ACM 功能链接到相应的配置
+ln -s ./functions/acm.GS0 configs/c.1
+ln -s ./functions/acm.GS1 configs/c.2
+ln -s ./functions/acm.GS2 configs/c.3
+
+# 将 USB 设备控制器绑定到 USB gadget
+echo `ls /sys/class/udc` > UDC
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+匠芯创 D21X
+
+1. RJ45 网络接口，I2C、GPIO 等外设已验证，开发板插入 USB 调试口可以修改设备名。
+
+2. 开发板插入 SD 卡后经过几个小时的 6500 个文件长时间读写测试，SD 卡会生成预期的文件个数和内容。
+
+3. D213 芯片 USBH0 可以虚拟成单个 USB 设备端，与PC主机端通信。
+
+后续将一个物理 USB 口虚拟为多个 USB 设备端，并尝试修改虚拟口的设备名，移植 SSH / SFTP 功能到开发板。
+
+
 
 
 
@@ -296,34 +602,7 @@ TODO:// 解决 make 编译报错问题: 多重定义，但是我的 源码中那
 
      路径问题~！！！薛定谔的路径 makefile 中宏定义变量使用 makefile 所在的文件夹的相对路径，
 
-  3. 问题猜测。
-
-
-
-##### - GPIO 驱动
-
-> 匠心创的方案：在 linux 内核 4.8 之后支持 GPIO 使用字符型接口
->
-> 参考文档: http://www.pedestrian.com.cn/user/gpio/index.html
-
-&emsp;&emsp;采用 `/dev/gpiochipx ` 来实现 GPIO 控制。并采用 ioctrl( ) 函数来控制。
-
-
-
-问题点: 使用 gpiochipx 如何控制 GPIO？
-
-```shell
-#temp 后续删，下方的映射不一定对
-gpiochip6 -> PU
-# 用户层的GPIO 映射
-gpiochip3 -> PC
-gpiochip1 -> PD
-
-# 选择正确的 gpiochip* 
-可能需要查看
-
-
-```
+  3. 问题原因：暂未去查找。时间紧，任务重。
 
 
 
@@ -331,11 +610,13 @@ gpiochip1 -> PD
 
 
 
-
-
-#### 五、RNDIS 移植 && mosquitto 移植
+#### 五、RNDIS 移植 && mosquitto 移植 && json库移植
 
 > 前言: D213ECV 的目的是实现 RNDIS 功能，它与上网模块连接，实现拨号功能。
+
+
+
+TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直接进来就采用 RNDIS 驱动。
 
 
 
@@ -354,6 +635,8 @@ gpiochip1 -> PD
 - 启用 RNDIS 模块
 
   [参考文档->4G 模块 LINUX 集成用户手册 ( 域格 )](https://www.docin.com/p-2082456085.html)
+
+  [上述参考文档 -- 域格文档下载链接](https://www.yuge-info.com/uploads/soft/190912/ShanghaiYUGE4GModuleLINUXIntegratedUserManual.pdf)
 
   > 内核配置部分
 
@@ -538,9 +821,17 @@ gpiochip1 -> PD
 
 
 
-##### - 移植 A7608E 当时写的将配置信息写入到配置文件的函数
+##### - 多线程写入文件，使用互斥锁
 
-> 不必修改，直接使用。具体请看我文档的 A7608E 部分
+> 部分写入文件的笔记，请看我文档的 A7608E 部分
+
+测试写入文件这部分，我们使用的互斥锁，来保护单次写入文件。
+
+
+
+
+
+
 
 
 
@@ -589,9 +880,29 @@ gpiochip1 -> PD
 
 
 
+#### 六、将程序制作成 img 的 Linux 镜像。(硬件加密？)
+
+// TODO.
 
 
-#### 六、将程序制作成 img 的 Linux 镜像。
+
+
+
+#### 七、其它
+
+- 设备树
+
+  [设备树语法参考文档](https://www.cnblogs.com/xiaojiang1025/p/6131381.html)
+
+
+
+- 移植 openssh & sftp 请查阅移植 openssh 文档部分。
+
+
+
+
+
+
 
 
 
@@ -601,16 +912,7 @@ gpiochip1 -> PD
 
 
 
-- 编译头文件找不到的问题: 可以查阅 Makefile 中的 -i 看它包含了哪些头文件/路径
-- 根目录的 Makefile 中 include(Makefile.sdk) 之后，Makefile.sdk 的所有头文件路径都会被包含，生命周期就是这个 make 的周期。
-- Linux 中无后缀
-- such as : <linux/gpio.h> 这个目录下，要找准目录，因为在 source/test_gpio 的例程中，编译会报错，宏定义的错误 ( 去 gpio.h 的头文件找这个宏定义)，因此要去 gpio.h 中查找这个宏定义，查看其是否真的包含它。
-- make --debug=a > log.txt 将详细日志打印到 log.txt中
 
-
-
-- 目前遇到的困难: TODO:// gpio 头文件的包含，头文件个数太多了，要单独编译 软件，而不是整个系统。
-- 待解决: // 根据 log.txt 日志查看是包含的是哪些头文件。
 
 
 
@@ -636,21 +938,149 @@ gpiochip1 -> PD
 
 #### 五一回来：测试 SDK 稳定性。
 
+1. 测试 SD 卡的读写。
 
-
-#### 假期有空学一下: DTS 设备树以及其它的移植方面的东西.
-
-内核部分也稍微学一下,避免遇到 BUG 无法解决.
-
+   多线程读写导致的文件打开冲突，应该使用互斥量机制来避免
 
 
 
 
 
+1. 测试 RNDIS 长时间收发问题。
+
+   ```bash
+   1-13 15:16
+   1-14  5:43
+   
+   
+   9+5 = 14.30  6.30 + 14.30 == 9:00结束
+   
+   # 使用下方命令行 
+   ls -l | grep "^-" | wc -l
+   
+   ```
+
+   
+
+todo: 修改 usb 口，当插入电脑时，识别到 usb 口的名称改为 fountainhead 这种。
+
+// 完成，搜全局设备名，改为 fountainhead。然后插入电脑，如果还是显示之前的，就卸载设备再拔插
+
+
+
+// 移植参考教程
+
+https://zhuanlan.zhihu.com/p/387939051
+
+
+
+https://www.openssl.org/source/
+
+```shell
+
+// 编译openssl 时的配置选项
+./Configure linux64-riscv64  no-asm shared no-async --prefix=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir
+    
+// 执行下方的配置选项就可以生成 lib库了
+./Configure linux64-riscv64 --prefix=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir
+
+./Configure linux-generic32 no-asm shared no-async --prefix=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir
+    
+vim Makefile
+
+
+
+```
 
 
 
 
+
+https://www.openssh.com/portable.html
+
+https://mirrors.aliyun.com/pub/OpenBSD/OpenSSH/portable/
+
+```shell
+# 编译openssh
+/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3
+    
+./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir  --disable-etc-default-login 
+    
+    
+# 不禁用默认登录
+./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir 
+
+./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir
+
+--without-openssl-header-check
+```
+
+```bash
+# 临时存放
+.c.o:
+        $(CC) $(CFLAGS) $(CPPFLAGS) -I /root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/include  -c $< -o $@
+        
+        
+# 
+ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
+        $(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat -L /root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/crypto $(LIBS) $(GSSLIBS) $(CHANNELLIBS)
+
+
+./configure --host=arm-linux-gnueabihf --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir --disable-etcdefault-login CC=riscv64-unknown-linux-gnu-gcc AR=riscv64-unknown-linux-gnu-ar
+
+```
+
+
+
+
+
+
+
+```bash
+#编译 zlib-1.2.8 流程
+cd /home/ssh-code/zlib-1.2.8
+mkdir install_dir                                              #创建安装目录
+./configure --prefix=/root/RISC-V/linux-sdk/port_lib/ssh-test/zlib-1.2.8/install_dir   #执行之后会生成Makefile
+vim Makefile                                                  #修改Makfile 将其中gcc、g++都修改为交叉编译器的名称。
+## 原来代码
+#  19: CC=gcc
+#  ...
+#  30: LDSHARED=gcc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map
+#  31: CPP=gcc -E
+## 修改如下
+#  19: CC=arm-linux-gcc
+#  ...
+#  30: LDSHARED=arm-linux-gcc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map
+#  31: CPP=arm-linux-gcc -E
+make
+make install
+
+
+```
+
+
+
+```bash
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+mkdir g0
+cd g0
+echo "0x1d6b" > idVendor
+echo "0x0104" > idProduct
+mkdir strings/0x409
+ls strings/0x409/
+echo "0123456789" > strings/0x409/serialnumber
+echo "AIC Inc." > strings/0x409/manufacturer
+echo "Bar Gadget" > strings/0x409/product
+mkdir functions/acm.GS0
+mkdir configs/c.1
+ls configs/c.1
+mkdir configs/c.1/strings/0x409
+ls configs/c.1/strings/0x409/
+echo "ACM" > configs/c.1/strings/0x409/configuration
+ln -s functions/acm.GS0 configs/c.1
+echo `ls /sys/class/udc` > UDC
+```
 
 
 

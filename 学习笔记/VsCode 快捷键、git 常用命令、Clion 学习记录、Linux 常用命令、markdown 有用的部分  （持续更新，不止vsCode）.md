@@ -64,7 +64,11 @@
 22. `du -h fileName` :- 查看fileName 文件/文件夹 所占用的大小
 23. `tar -xvf abc.tar.gz` :- 解压文件，当然不同的压缩方式解压命令可能不同
 24. `make -j $(($(nproc)+1)) || make -j 1 || make -j1 V=s` :- 执行 `make -j $(($(nproc)+1)) `，如果返回 '非' 就会执行第二条
-24. `ls -lah`：查看当前文件下的文件所占用空间大小
+25. `ls -lah`：查看当前文件下的文件所占用空间大小
+26. `ls -l | grep "^-" | wc -l`: 查看当前文件夹中的文件个数
+27. `ls -l /path/to/directory | grep "^-" | wc -l`: 查看目标文件夹下的文件个数
+24. 在 vim 下 `ggdG` 用于删除该文件下所有内容。gg -- 光标移动到最前面， dG -- 删除光标后的所有内容。 dd -- 删除当前行
+24. `netstat -tuln` 查看当前所有占用的端口
 25. 16.TODO:///////// curl   ----   bash    ----  wget ---yum  等命令待整理
 
 
