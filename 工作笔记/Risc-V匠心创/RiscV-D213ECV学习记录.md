@@ -367,7 +367,7 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 2. 配置 `struct gpio_v2_line_request req;` I/O 口的请求的结构体，用来获取设备的信息
 
-   <img src="RiscV-D213ECV%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.assets/image-20240508165628876.png" alt="image-20240508165628876" style="zoom: 80%;" />
+   <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405141600020.png" alt="image-20240508165628876" style="zoom: 80%;" />
 
    ```c
    // 创建结构体对象
@@ -1010,7 +1010,7 @@ https://mirrors.aliyun.com/pub/OpenBSD/OpenSSH/portable/
 # 不禁用默认登录
 ./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir 
 
-./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir
+./Configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh-oldversion/zlib-1.2.9/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir --disable-etc-default-login 
 
 --without-openssl-header-check
 ```
@@ -1026,7 +1026,13 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
         $(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat -L /root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/crypto $(LIBS) $(GSSLIBS) $(CHANNELLIBS)
 
 
-./configure --host=arm-linux-gnueabihf --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir --disable-etcdefault-login CC=riscv64-unknown-linux-gnu-gcc AR=riscv64-unknown-linux-gnu-ar
+
+# 可执行的配置命令
+./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh/zlib-1.3/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh/openssl-3.2.1/install_dir --disable-etcdefault-login  CC=riscv64-unknown-linux-gnu-gcc AR=riscv64-unknown-linux-gnu-ar
+
+
+#测试用
+./configure --host=riscv64-linux --with-libs --with-zlib=/root/RISC-V/linux-sdk/port_lib/ssh-oldversion/zlib-1.2.9/install_dir --with-ssl-dir=/root/RISC-V/linux-sdk/port_lib/ssh-oldversion/openssl-3.0.12/install_dir --disable-etcdefault-login  CC=riscv64-unknown-linux-gnu-gcc AR=riscv64-unknown-linux-gnu-ar
 
 ```
 
@@ -1054,6 +1060,9 @@ vim Makefile                                                  #修改Makfile 将
 #  31: CPP=arm-linux-gcc -E
 make
 make install
+
+
+./configure --prefix=/root/RISC-V/linux-sdk/port_lib/ssh-oldversion/zlib-1.2.9/install_dir 
 
 
 ```
