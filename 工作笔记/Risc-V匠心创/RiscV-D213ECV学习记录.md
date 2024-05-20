@@ -440,6 +440,16 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 
 
+- 代码部分解释
+
+  ```c
+  
+  
+  
+  ```
+
+  
+
 
 
 
@@ -457,6 +467,60 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 
 > usb 虚拟多串口 TODO:// 暂时不做，网上资料很少。 先搞SSH
+
+
+
+> SSH 搞完了，回来理清思路
+
+1. 如果开启 g_serial 模块
+
+   ```bash
+   -> Device Drivers
+   --> USB support
+   ---> USB Gadget Support
+   ----> USB Gadget precomposed configurations
+   		<*>Serial Gadget (with CDC ACM and CDC OBEX support)
+   
+   ```
+
+   设备启动时会自动加载 usb device，电脑上就能看到串口 ，应该 Linux 内核自动识别的 usb dev。
+
+   此时： 执行该部分会提示 busy。（为什么要加载 g_serial 模块？因为不加载就无法创建 `mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0` ）
+
+   ```
+   [aic@g1] # echo `ls /sys/class/udc` > UDC                                                                                                    
+   sh: write error: Device or resource busy   
+   ```
+
+2. 虚拟 VCP https://community.renesas.com/the_vault/f/archive-forum/8468/multiple-com-ports-using-one-usb-peripheral
+
+   可行性验证: http://janaxelson.com/usb_virtual_com_port.htm :monkey::laughing::angel:
+
+
+
+
+
+
+
+```bash
+mount -t configfs none /sys/kernel/config
+
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+```
+
+
+
+
+
+
+
+
 
 
 
@@ -484,6 +548,8 @@ ln -s functions/acm.GS0 configs/c.1
 echo `ls /sys/class/udc` > UDC
 
 ```
+
+
 
 
 
@@ -564,7 +630,144 @@ echo `ls /sys/class/udc` > UDC
 
 
 
+```bash
+# ACM 多虚拟串口方法2 ， temp 未测试通过
 
+# 挂载 configfs
+mount -t configfs none /sys/kernel/config
+
+# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
+cd /sys/kernel/config/usb_gadget
+mkdir g1
+cd g1
+echo "0x6666" > idVendor
+echo "0x6666" > idProduct
+
+# 配置 USB 字符串描述符
+mkdir strings/0x409
+echo "0123456789" > strings/0x409/serialnumber
+echo "AIC Inc." > strings/0x409/manufacturer
+echo "Multi ACM Gadget" > strings/0x409/product
+
+# 创建三个 ACM 功能
+mkdir functions/gser.gs0 
+mkdir functions/gser.gs1 
+mkdir functions/gser.gs2 
+
+# 创建一个配置并添加字符串描述符
+mkdir configs/c.1
+mkdir configs/c.1/strings/0x409
+echo "Config 1: ACM interfaces" > configs/c.1/strings/0x409/configuration
+
+# 将 ACM 功能链接到配置
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/c.1/f1
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/c.1/f2
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/c.1/f3
+
+
+# 将 USB 设备控制器绑定到 USB gadget
+echo `ls /sys/class/udc` > UDC
+
+```
+
+/*
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/b.1/f1
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/b.1/f2
+ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/b.1/f3
+*/
+
+
+
+
+
+```
+# 挂载 configfs
+mount -t configfs none /sys/kernel/config
+
+# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
+cd /sys/kernel/config/usb_gadget
+mkdir g1
+cd g1
+echo "0x6666" > idVendor
+echo "0x6666" > idProduct
+
+# 配置 USB 字符串描述符
+mkdir strings/0x409
+echo "0123456789" > strings/0x409/serialnumber
+echo "AIC Inc." > strings/0x409/manufacturer
+echo "Multi ACM Gadget" > strings/0x409/product
+
+# 创建三个 ACM 功能
+mkdir functions/acm.GS0
+mkdir functions/acm.GS1
+mkdir functions/acm.GS2
+
+# 创建一个配置并添加字符串描述符
+mkdir configs/c.1
+mkdir configs/c.1/strings/0x409
+echo "Config 1: ACM interfaces" > configs/c.1/strings/0x409/configuration
+
+# 将 ACM 功能链接到配置
+ln -s functions/acm.GS0 configs/c.1/
+ln -s functions/acm.GS1 configs/c.1/
+ln -s functions/acm.GS2 configs/c.1/
+
+# 尝试手动绑定 USB 设备控制器
+echo `ls /sys/class/udc` > UDC
+
+```
+
+
+
+```bash
+#!/bin/bash
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+mkdir g1
+cd g1
+
+# Set basic information
+echo 0x1d6b > idVendor # Linux Foundation
+echo 0x0104 > idProduct # Multifunction Composite Gadget
+echo 0x0100 > bcdDevice # v1.0.0
+echo 0x0200 > bcdUSB # USB2
+
+# Set string descriptors
+mkdir -p strings/0x409
+echo "0123456789" > strings/0x409/serialnumber
+echo "My Manufacturer" > strings/0x409/manufacturer
+echo "My Gadget" > strings/0x409/product
+
+# Create configuration and set attributes
+mkdir -p configs/c.1
+mkdir -p configs/c.1/strings/0x409
+echo "Config 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+# Create ACM functions
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
+chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+
+# Link functions to configuration
+ln -s functions/gser.gs0 configs/c.1/f1
+ln -s functions/gser.gs1 configs/c.1/f2
+ln -s functions/gser.gs2 configs/c.1/f3
+
+# Enable USB Gadget
+echo `ls /sys/class/udc` > UDC
+
+    
+    
+    
+    echo "your_udc_device" > UDC
+
+```
 
 
 
@@ -781,7 +984,7 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
 [参考文档](https://www.cnblogs.com/20180211lijunxin/articles/14859898.html)
 
-- 拉取库并在 **json-c 同级目录下** 创建 `toolChain_json.cmake` 文件
+- 拉取 `git clone https://github.com/json-c/json-c.git `库并在 **json-c 同级目录下** 创建 `toolChain_json.cmake` 文件
 
   ![image-20240428112059889](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281130222.png)
 
@@ -1090,6 +1293,8 @@ echo "ACM" > configs/c.1/strings/0x409/configuration
 ln -s functions/acm.GS0 configs/c.1
 echo `ls /sys/class/udc` > UDC
 ```
+
+
 
 
 

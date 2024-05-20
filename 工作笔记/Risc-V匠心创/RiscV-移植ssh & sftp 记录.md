@@ -332,8 +332,6 @@
     # 后续如果需要解决该问题，将它设置为系统变量
     ```
 
-    
-
 
 
 - 从 openssl 库中的 libcrypto.so.3 传入开发板，**『并设置为环境变量』**
@@ -357,8 +355,6 @@
 
 
 
-
-
 - 修改 sshd_config 与运行程序
 
   - 报错 /var/empty 必须仅被 root 用户拥有
@@ -371,7 +367,6 @@
     # 产生原因: 权限给太多了
     # 解决办法：修改用户权限 为 755
     chmod 755 /var/empty
-    
     ```
 
   - 重磅异常！ 用户连不上时
@@ -392,8 +387,6 @@
     url: [排错时参考的英文文档 #6 楼回答 2018-02-05 ](https://bbs.archlinux.org/viewtopic.php?id=234837)  
 
     ![image-20240516104240078](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405161108404.png)
-
-    
 
     
 
@@ -421,9 +414,7 @@
 
 - 存储空间不够用，移动 ./bin/ 里的文件会导致系统崩溃
 
-  
-
-
+  解决办法: ./bin/ 里的文件一部分一部分地移动。
 
 
 
@@ -462,8 +453,6 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 
 ###### 3. 单用户下无法 限制访问路径后 使 SFTP 与 SSH 共存
 
-
-
 - 建立软连接，使 SSH 看起来像 SFTP 程序
 
   ```
@@ -487,15 +476,11 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 - sshd 强制使用其它的配置文件
 
   ```bash
-  
-  
   # 强制使用 sftp配置文件
   sudo /usr/local/sbin/sftpd -f /usr/local/sbin/sftp_config
   ```
 
   
-
-
 
 ###### -  问题点
 
@@ -509,8 +494,6 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 
    
 
-
-
 ---
 
 #### Reference URL
@@ -519,7 +502,7 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 
    https://zhuanlan.zhihu.com/p/387939051
 
-2. 。。。
+2. 
 
 
 
@@ -540,57 +523,6 @@ BUG1
 
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-- 
-  为仿真环境添加指令踪迹功能。
-
-<details class="info" open="" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(0, 184, 212); border-radius: 0.2rem; box-shadow: var(--md-shadow-z1); color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(0, 184, 212, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">完成本实验需要安装 Verilator</summary><p style="box-sizing: border-box; margin-bottom: 0.6rem;">请参考<a href="https://soc.ustc.edu.cn/CECS/lab0/verilator/" style="box-sizing: inherit; -webkit-tap-highlight-color: transparent; color: var(--md-typeset-a-color); text-decoration: none; word-break: break-word; transition: color 125ms ease 0s;">实验环境搭建</a>中的步骤安装 Verilator。</p></details>
-
-<details class="info" open="open" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(0, 184, 212); border-radius: 0.2rem; box-shadow: var(--md-shadow-z1); color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(0, 184, 212, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">请获取 Lab2 所需的代码框架</summary><p style="box-sizing: border-box;">请将工作目录切换到 Lab2，运行以下命令：</p><div class="language-shell highlight" style="box-sizing: border-box; margin-bottom: 0.6rem;"><span class="filename" style="box-sizing: inherit; background-color: var(--md-code-bg-color); border-bottom: .05rem solid var(--md-default-fg-color--lightest); border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; display: flow-root; font-size: 0.85em; font-weight: 700; margin-top: 1em; padding: 0.661765em 1.17647em; position: relative;">shell</span><pre id="__code_0" style="box-sizing: inherit; font-feature-settings: &quot;kern&quot;; font-family: var(--md-code-font-family); margin-bottom: 1em; margin-top: 0px; color: var(--md-code-fg-color); direction: ltr; font-variant-ligatures: none; display: flow-root; line-height: 1.4; position: relative;"><span style="box-sizing: inherit;"></span><button class="md-clipboard md-icon" title="复制" data-clipboard-target="#__code_0 > code" style="box-sizing: inherit; -webkit-tap-highlight-color: transparent; background: rgba(0, 0, 0, 0); border: 0px; font-family: inherit; font-size: inherit; margin: 0px; padding: 0px; border-radius: 0.1rem; color: var(--md-default-fg-color--lightest); cursor: pointer; height: 1.5em; outline: none; outline-offset: 0.1rem; position: absolute; right: 0.5em; top: 0.5em; transition: color 0.25s ease 0s; width: 1.5em; z-index: 1;"></button><code style="box-sizing: inherit; font-feature-settings: &quot;kern&quot;; font-family: var(--md-code-font-family); color: var(--md-code-fg-color); direction: ltr; font-variant-ligatures: none; background-color: var(--md-code-bg-color); border-radius: 0px 0px 0.1rem 0.1rem; -webkit-box-decoration-break: slice; font-size: 0.85em; padding: 0.772059em 1.17647em; word-break: normal; box-shadow: none; display: block; margin: 0px; outline: none; overflow: auto; scrollbar-color: var(--md-default-fg-color--lighter) #0000; scrollbar-width: thin; touch-action: auto; -webkit-tap-highlight-color: transparent;"><span id="__span-0-1" style="box-sizing: inherit;"><a id="__codelineno-0-1" name="__codelineno-0-1" href="https://soc.ustc.edu.cn/CECS/lab2/intro/#__codelineno-0-1" style="box-sizing: inherit; -webkit-tap-highlight-color: transparent; color: var(--md-typeset-a-color); text-decoration: none; word-break: break-word; transition: color 125ms ease 0s; position: absolute; visibility: hidden;"></a>$<span class="w" style="box-sizing: inherit;"> </span>./zinit.sh
-</span></code></pre></div></details>
-
-## **1 仿真环境解读**
-
-<details class="info" open="open" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(0, 184, 212); border-radius: 0.2rem; box-shadow: var(--md-shadow-z1); color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(0, 184, 212, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">这一部分需要先了解 Verilator 的原理</summary><p style="box-sizing: border-box; margin-bottom: 0.6rem;">如果你还不清楚 Verilator 的基本功能和用法，那么请先阅读<span>&nbsp;</span><a href="https://soc.ustc.edu.cn/CECS/lab2/verilator/" style="box-sizing: inherit; -webkit-tap-highlight-color: transparent; color: var(--md-typeset-a-color); text-decoration: none; word-break: break-word; transition: color 125ms ease 0s;">Verilator 使用指南</a>。</p></details>
-
-我们需要使用 Verilator 对编写的处理器核进行仿真，以验证其正确性。然而，只有处理器核的代码是无法完成仿真的，我们还需要构建一个仿真环境，以产生时钟激励信号，模拟存储器、外设与 CPU 核进行交互，以及获取并输出一些调试信息。
-
-- 计，之后会回到 `sdb_mainloop` 函数中，等待下一条指令。
-
-<details class="question" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(100, 221, 23); border-radius: 0.2rem; box-shadow: none; color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(100, 221, 23, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">为什么要编写这么复杂的仿真环境？直接导出波形不就好了？</summary><p style="box-sizing: border-box;"></p><p style="box-sizing: border-box; margin-bottom: 0.6rem;"></p></details>
-
-<details class="success" open="open" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(0, 200, 83); border-radius: 0.2rem; box-shadow: var(--md-shadow-z1); color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(0, 200, 83, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">Task 1.1</summary><p style="box-sizing: border-box; margin-bottom: 0.6rem;">这个任务不需要大家编写任何代码，只需要大家把模拟器从<span>&nbsp;</span><code style="box-sizing: inherit; font-feature-settings: &quot;kern&quot;; font-family: var(--md-code-font-family); color: var(--md-code-fg-color); direction: ltr; font-variant-ligatures: none; background-color: var(--md-code-bg-color); border-radius: 0.1rem; -webkit-box-decoration-break: clone; font-size: 0.85em; padding: 0px 0.294118em; word-break: break-word; -webkit-tap-highlight-color: transparent; outline: none;">main</code><span>&nbsp;</span>函数开始运行，到进入<span>&nbsp;</span><code style="box-sizing: inherit; font-feature-settings: &quot;kern&quot;; font-family: var(--md-code-font-family); color: var(--md-code-fg-color); direction: ltr; font-variant-ligatures: none; background-color: var(--md-code-bg-color); border-radius: 0.1rem; -webkit-box-decoration-break: clone; font-size: 0.85em; padding: 0px 0.294118em; word-break: break-word; -webkit-tap-highlight-color: transparent; outline: none;">sdb_mainloop</code><span>&nbsp;</span>函数等待命令，再到驱动 CPU 执行指令，最后到仿真结束的过程完整地看一遍。这个过程中，有任何的疑问可以立刻询问助教。</p></details>
-
-## **2 仿真环境的构建**
-
-<details class="warning" open="open" style="box-sizing: inherit; background-color: var(--md-admonition-bg-color); border: 0.05rem solid rgb(255, 145, 0); border-radius: 0.2rem; box-shadow: var(--md-shadow-z1); color: rgba(0, 0, 0, 0.87); display: flow-root; font-size: 0.64rem; margin: 1.5625em 0px; padding: 0px 0.6rem; break-inside: avoid; transition: box-shadow 125ms ease 0s; overflow: visible; font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><summary style="box-sizing: border-box; background-color: rgba(255, 145, 0, 0.1); border-top: none; border-right: none; border-bottom: none; border-left: 0.2rem none; border-image: initial; font-weight: 700; margin: 0px -0.6rem; padding: 0.4rem 1.8rem 0.4rem 2rem; position: relative; cursor: pointer; display: block; min-height: 1rem; border-top-left-radius: 0.1rem; border-top-right-radius: 0.1rem; -webkit-tap-highlight-color: transparent; outline: none;">醒醒！这不是 Lab1！</summary><p style="box-sizing: border-box;">我们在 Lab1 中强调的裸机环境是针对在我们自己设计的硬件上运行的程序，而我们的 simulator 是在实验平台上运行的！所以不要再“什么都不敢用了”！</p><p style="box-sizing: border-box; margin-bottom: 0.6rem;"><del style="box-sizing: inherit;">我直接上来就是一个<span>&nbsp;</span><code style="box-sizing: inherit; font-feature-settings: &quot;kern&quot;; font-family: var(--md-code-font-family); color: var(--md-code-fg-color); direction: ltr; font-variant-ligatures: none; background-color: var(--md-code-bg-color); border-radius: 0.1rem; -webkit-box-decoration-break: clone; font-size: 0.85em; padding: 0px 0.294118em; word-break: break-word; -webkit-tap-highlight-color: transparent; outline: none;">#include &lt;bits/stdc++.h&gt;</code>。</del></p></details>
-
-大家在阅读了仿真环境代码之后，肯定发现了其中有大量的空白。我们逐一来看：
-
-### **2.1 时钟驱动函数**
-
-还记得你是如何在 Vivado 的测试激励文件中模拟时钟的吗？
-
 
 
 
