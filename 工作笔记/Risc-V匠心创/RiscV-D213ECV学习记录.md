@@ -458,6 +458,10 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 ##### - USB 作为 Device 连接电脑显示串口 (虚拟多串口)
 
+1. [串口驱动方式 CDC-ACM、VCP、HID 对比](https://bbs.21ic.com/icview-3179084-1-1.html)
+
+
+
 > Linux 内核启用 Gadget 后接电脑，用来显示串口，并与之通信。
 
 这一部分跟着官方文档上走，注意要屏蔽掉 ADB 调试功能才能虚拟成 USB device
@@ -498,276 +502,64 @@ pay attention: 克隆 toolchain 仓库速度特别慢！ 目前暂不使用该�
 
 
 
+###### -- TODO:// Windows 编写 USB 驱动。(HARD)
+
+> 方案: :monkey_face: 修改
+
+1. 使用 Visual Studio 下载安装 Windows kit 之类的 SDK 工具。
+2. 参考文档：chatGPT、微软官方文档
+3. 
 
 
 
-
-```bash
-mount -t configfs none /sys/kernel/config
-
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
-
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
-```
-
-
-
-
-
-
-
-
+> 实施: :laughing: 使用
 
 
 
 ```bash
+# TODO: 目前认为该配置没问题，但是可能内核没开启 CONFIG_USB_ACM 
+# 但内核开启了之后 执行 echo 10200000.udc > UDC 依旧报错
+# zcat /proc/config.gz | grep CONFIG_USB_ACM # 查看内核是否开启ACM
 
 mount -t configfs none /sys/kernel/config
 cd /sys/kernel/config/usb_gadget
-mkdir g1
-cd g1
-echo "0x6666" > idVendor
-echo "0x6666" > idProduct
-mkdir strings/0x409
-ls strings/0x409/
-echo "0123456789" > strings/0x409/serialnumber
-echo "AIC Inc." > strings/0x409/manufacturer
-echo "Bar Gadget" > strings/0x409/product
-mkdir functions/acm.GS0
+
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
 mkdir configs/c.1
-ls configs/c.1
-mkdir configs/c.1/strings/0x409
-ls configs/c.1/strings/0x409/
-echo "ACM" > configs/c.1/strings/0x409/configuration
-ln -s functions/acm.GS0 configs/c.1
 
-echo `ls /sys/class/udc` > UDC
-
-```
-
-
-
-
-
-```bash
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
-
-
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/c.1/f1
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/c.1/f2
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/c.1/f3
-
-
-```
-
-
-
-chatGPT 给出的提示
-
-执行后的现象：windows下依旧只会多出一个 usb 串行设备，而开发板Linux 下会多出几个 /dev/ttyGS0,1,2
-
-```bash
-# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
-mount -t configfs none /sys/kernel/config
-cd /sys/kernel/config/usb_gadget
-mkdir g1
-cd g1
-echo "0x6666" > idVendor
-echo "0x6666" > idProduct
-
-# 配置 USB 字符串描述符
-mkdir strings/0x409
-echo "0123456789" > strings/0x409/serialnumber
-echo "AIC Inc." > strings/0x409/manufacturer
-
-mkdir strings/0x410
-echo "0123456787" > strings/0x410/serialnumber
-echo "dearl Inc." > strings/0x410/manufacturer
-echo "Bar1 Gadget" > strings/0x410/product
-
-mkdir strings/0x411
-echo "0123456788" > strings/0x411/serialnumber
-echo "dearl2 Inc." > strings/0x411/manufacturer
-echo "Bar2 Gadget" > strings/0x411/product
-
-# 创建三个 ACM 功能并为每个功能创建一个配置
-mkdir -p functions/acm.GS0
-mkdir -p functions/acm.GS1
-mkdir -p functions/acm.GS2
-
-mkdir -p configs/c.1
-mkdir -p configs/c.2
-mkdir -p configs/c.3
-
-# 配置每个配置的字符串描述符
-mkdir -p configs/c.1/strings/0x409
-mkdir -p configs/c.2/strings/0x410
-mkdir -p configs/c.3/strings/0x411
-
-
-echo "ACM 1" > configs/c.1/strings/0x409/configuration
-echo "ACM 2" > configs/c.2/strings/0x410/configuration
-echo "ACM 3" > configs/c.3/strings/0x411/configuration
-
-# 将每个 ACM 功能链接到相应的配置
-ln -s ./functions/acm.GS0 configs/c.1
-ln -s ./functions/acm.GS1 configs/c.2
-ln -s ./functions/acm.GS2 configs/c.3
-
-# 将 USB 设备控制器绑定到 USB gadget
-echo `ls /sys/class/udc` > UDC
-
-```
-
-
-
-```bash
-# ACM 多虚拟串口方法2 ， temp 未测试通过
-
-# 挂载 configfs
-mount -t configfs none /sys/kernel/config
-
-# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
-cd /sys/kernel/config/usb_gadget
-mkdir g1
-cd g1
-echo "0x6666" > idVendor
-echo "0x6666" > idProduct
-
-# 配置 USB 字符串描述符
-mkdir strings/0x409
-echo "0123456789" > strings/0x409/serialnumber
-echo "AIC Inc." > strings/0x409/manufacturer
-echo "Multi ACM Gadget" > strings/0x409/product
-
-# 创建三个 ACM 功能
-mkdir functions/gser.gs0 
-mkdir functions/gser.gs1 
-mkdir functions/gser.gs2 
-
-# 创建一个配置并添加字符串描述符
-mkdir configs/c.1
-mkdir configs/c.1/strings/0x409
-echo "Config 1: ACM interfaces" > configs/c.1/strings/0x409/configuration
-
-# 将 ACM 功能链接到配置
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/c.1/f1
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/c.1/f2
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/c.1/f3
-
-
-# 将 USB 设备控制器绑定到 USB gadget
-echo `ls /sys/class/udc` > UDC
-
-```
-
-/*
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs2 /sys/kernel/config/usb_gadget/g1/configs/b.1/f1
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs0 /sys/kernel/config/usb_gadget/g1/configs/b.1/f2
-ln -s /sys/kernel/config/usb_gadget/g1/functions/gser.gs1 /sys/kernel/config/usb_gadget/g1/configs/b.1/f3
-*/
-
-
-
-
-
-```
-# 挂载 configfs
-mount -t configfs none /sys/kernel/config
-
-# 创建一个 USB gadget 并配置 Vendor ID 和 Product ID
-cd /sys/kernel/config/usb_gadget
-mkdir g1
-cd g1
-echo "0x6666" > idVendor
-echo "0x6666" > idProduct
-
-# 配置 USB 字符串描述符
-mkdir strings/0x409
-echo "0123456789" > strings/0x409/serialnumber
-echo "AIC Inc." > strings/0x409/manufacturer
-echo "Multi ACM Gadget" > strings/0x409/product
-
-# 创建三个 ACM 功能
 mkdir functions/acm.GS0
 mkdir functions/acm.GS1
-mkdir functions/acm.GS2
 
-# 创建一个配置并添加字符串描述符
-mkdir configs/c.1
+mkdir strings/0x409
 mkdir configs/c.1/strings/0x409
-echo "Config 1: ACM interfaces" > configs/c.1/strings/0x409/configuration
 
-# 将 ACM 功能链接到配置
-ln -s functions/acm.GS0 configs/c.1/
-ln -s functions/acm.GS1 configs/c.1/
-ln -s functions/acm.GS2 configs/c.1/
-
-# 尝试手动绑定 USB 设备控制器
-echo `ls /sys/class/udc` > UDC
-
-```
-
-
-
-```bash
-#!/bin/bash
-
-mount -t configfs none /sys/kernel/config
-cd /sys/kernel/config/usb_gadget
-mkdir g1
-cd g1
-
-# Set basic information
-echo 0x1d6b > idVendor # Linux Foundation
-echo 0x0104 > idProduct # Multifunction Composite Gadget
-echo 0x0100 > bcdDevice # v1.0.0
-echo 0x0200 > bcdUSB # USB2
-
-# Set string descriptors
-mkdir -p strings/0x409
 echo "0123456789" > strings/0x409/serialnumber
-echo "My Manufacturer" > strings/0x409/manufacturer
-echo "My Gadget" > strings/0x409/product
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "dearl usb" > strings/0x409/product
 
-# Create configuration and set attributes
-mkdir -p configs/c.1
-mkdir -p configs/c.1/strings/0x409
-echo "Config 1" > configs/c.1/strings/0x409/configuration
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
 echo 120 > configs/c.1/MaxPower
 
-# Create ACM functions
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-mkdir -p /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
 
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs0
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs1
-chmod 755 /sys/kernel/config/usb_gadget/g1/functions/gser.gs2
+ln -s functions/acm.GS0 configs/c.1
+ln -s functions/acm.GS1 configs/c.1
 
-# Link functions to configuration
-ln -s functions/gser.gs0 configs/c.1/f1
-ln -s functions/gser.gs1 configs/c.1/f2
-ln -s functions/gser.gs2 configs/c.1/f3
-
-# Enable USB Gadget
-echo `ls /sys/class/udc` > UDC
-
-    
-    
-    
-    echo "your_udc_device" > UDC
-
+echo 10200000.udc > UDC
 ```
+
+
+
+
+
+
+
+
 
 
 
@@ -795,11 +587,11 @@ echo `ls /sys/class/udc` > UDC
 
 ##### - 遇到的坑
 
-- 引入头文件报错
+- 在编译自己的代码 app 时，引入头文件报错 :disappointed_relieved:
 
   1. 问题描述:
 
-     我 main.c 中引入了 config.h 头文件，而且 Makefile 的编译 main.o 的路径理论上是包含了 config.h 的路径的，但是编译依旧报错。![image-20240419153150808](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404191600214.png)
+     &emsp;&emsp;我 main.c 中引入了 config.h 头文件，而且 Makefile 的编译 main.o 的路径理论上是包含了 config.h 的路径的，但是编译依旧报错。![image-20240419153150808](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404191600214.png)
 
   2. 临时解决方法。
 
@@ -815,15 +607,11 @@ echo `ls /sys/class/udc` > UDC
 
 #### 五、RNDIS 移植 && mosquitto 移植 && json库移植
 
-> 前言: D213ECV 的目的是实现 RNDIS 功能，它与上网模块连接，实现拨号功能。
+---
 
+##### - 添加板子 make add_board && 启用 RNDIS 模块 && USB 接外部 4G 模块发送 AT 指令
 
-
-TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直接进来就采用 RNDIS 驱动。
-
-
-
-##### - 添加板子 make add_board && 启用 RNDIS 模块
+###### -- 添加新板子
 
 - 在 SDK 根目录下使用 `make add_board` 选择默认的 `demo128_nand_defconfig`
 
@@ -833,33 +621,35 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
   猜测: 可能是设备树之类，亦或者 pinmux 引脚复用未配置。
 
-  
-
-- 启用 RNDIS 模块
-
-  [参考文档->4G 模块 LINUX 集成用户手册 ( 域格 )](https://www.docin.com/p-2082456085.html)
-
-  [上述参考文档 -- 域格文档下载链接](https://www.yuge-info.com/uploads/soft/190912/ShanghaiYUGE4GModuleLINUXIntegratedUserManual.pdf)
-
-  > 内核配置部分
-
-  1. 使用 make km ( make kernel-menuconfig ) 进入图形配置界面
-
-     ![image-20240428095753626](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037609.png)
-
-  2. 进入如下路径并开启内核功能
-
-     ```bash
-     Device Drivers
-     - [*]Network device support
-     -- <*>USB Network Adapters
-     --- <M>Multi-purpose USB Networking Framework
-     		<M>Host for RNDIS and ActiveSync devices #这里用 M 或者 * 都行。如果用*就不生成 rndis_host.ko 内核模块，而是直接编译进内核
-     ```
-
-     Ask: 使用 M 之后编译好的内核模块也能执行，而 chatGPT 提示需要加载内核才能运行。。。?
+  后续结论: demo128 和 demo100 和 demo88 表示不同芯片引脚的开发板，它们的设备树映射也不同，因此需要修改成正确的 pinmux 引脚。
 
   
+
+###### -- 内核中启用 RNDIS 模块
+
+[参考文档->4G 模块 LINUX 集成用户手册 ( 域格 )](https://www.docin.com/p-2082456085.html)
+
+[上述参考文档 -- 域格文档下载链接](https://www.yuge-info.com/uploads/soft/190912/ShanghaiYUGE4GModuleLINUXIntegratedUserManual.pdf)
+
+> 内核配置部分
+
+1. 使用 make km ( make kernel-menuconfig ) 进入图形配置界面
+
+   ![image-20240428095753626](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037609.png)
+
+2. 进入如下路径并开启内核功能
+
+   ```bash
+   Device Drivers
+   - [*]Network device support
+   -- <*>USB Network Adapters
+   --- <M>Multi-purpose USB Networking Framework
+   		<M>Host for RNDIS and ActiveSync devices #这里用 M 或者 * 都行。如果用*就不生成 rndis_host.ko 内核模块，而是直接编译进内核
+   ```
+
+   Ask: 使用 M 之后编译好的内核模块也能执行，而 chatGPT 提示需要加载内核才能运行。。。?
+
+
 
 - 根据上方操作插入 usb 已经可以看到新添加的 usb 设备了，
 
@@ -879,19 +669,77 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
   
 
-  > 但，教程中提示如果设备不支持的话需要修改内核设备源码 ( 如果需要的话 )
+---
+
+###### -- Linux 开发板外接 4G 模块，可以查看到 3 个 USB 设备，并向它发送 AT 指令设置 APN
+
+> 需求：
+
+&emsp;&emsp;开发板中 USB HOST 就类似于 Windows 电脑主机，USB 接入模块会显示 3 个串口
+
+
+
+- 内核中使能 GSM 和 CDMA 模块功能。
+
+  > > CDMA: ( 码分多址 Code Division Multiple Access )
   >
-  > 使用 `lsusb` 查看 VID PID
+  > &emsp;&emsp;作用：用于无线通信的多址技术，主要允许多个用户在同一频谱上进行通信，且互不干扰。常用于移动通信、卫星通信、无线局域网等。
 
-  - usb 内核在 `linux-5.10/drivers/usb/serial/option.c` 添加设备驱动，添加好驱动之后就可以执行 `modprobe usbserial vendor=1782 product=4e00` 来加载设备了。（不确定这一步骤的作用）
+  1. 使用在 d211/ 根目录下运行 'make km' 进行内核选项的编辑。( 如果是其它 linux 内核源码，大部分采用 make menuconfig 来进行配置 )
 
-    但是: 存在根据 `域格` 的文档，并未在 `/dev/ttyU*` 中找到设备。也许这个模块是合宙的，存在差异。
+  2. 配置选项
 
-  <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037613.png" alt="image-20240428102603465" style="zoom: 67%;" />
+     Device Drivers ---> 
 
-  <img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037614.png" alt="image-20240428102626999" style="zoom:67%;" />
+     &emsp;&emsp;USB support --->
+
+     &emsp;&emsp;&emsp;&emsp;<*> USB Serial Converter support --->
+
+     &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<*> USB driver for GSM and CDMA modems
 
   
+
+- Linux 开发板中使用 `lsusb` 查看 VID PID
+
+  下图红色方框内就是合宙模块接入 Linux 开发板 USB Host 后新增的 usb 设备。 VID = 0x1782、PID = 0x4e00
+
+  ![image-20240528103526768](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405281433358.png)
+
+
+
+- 修改 Linux 内核 usb 驱动，添加目标模块 VID 和 PID
+
+  1. 进入路径 ./source/linux-5.10/drivers/usb/serial/option.c 的源码中进行修改
+
+  2. 添加模块的 PID 和 VID 做成宏定义
+
+     ![image-20240528142154469](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405281433359.png)‘
+
+  3. 添加添加 USB 设备到 option_ids[ ] 结构体数组
+
+     ![image-20240528142502453](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405281433360.png)
+
+  
+
+
+
+- 重新编译 Linux 内核，烧录后将模块加载到系统中( 这一部分看情况是否需要做，因为不做这一步依旧正常使用，我反正没看出区别 )。
+
+  ```bash
+  modprobe usbserial vendor=0x1782 product=0x4e00 
+  ```
+
+
+
+- 上述操作参考的 域格 的模块文档
+
+<img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037613.png" alt="image-20240428102603465" style="zoom: 80%;" />
+
+<img src="https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202404281037614.png" alt="image-20240428102626999" style="zoom: 80%;" />
+
+
+
+---
 
 ##### - 移植 mosquitto 库
 
@@ -1042,9 +890,9 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
 ---
 
-###### -- 1.使用 demo128_defconfig 的默认配置编译的镜像无法使用 rndis (不是坑，是我的问题。下方忽略。)
+###### -- 1.使用 demo128_defconfig 的默认配置编译的镜像无法使用 rndis (并非编译错误，而是使用上失误)
 
-> 短期解决办法 ( 笨办法 )
+> 短期解决办法 
 
 1. 先在内核中选中 rndis，随后在**编译路径中找到内核编译的模块**
 
@@ -1109,6 +957,10 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
 
 
+
+
+
+
 #### 总结
 
 &emsp;&emsp;思路方面的问题: 要找准目标，明白目前项目的需求，就 d21x 而言目前是实现芯片和 模块进行通信，**应当把精力花在业务部分上面。而不是折腾环境。**目的是使用 SDK，而不是开发 SDK。这部分也是我的缺点，办事情之前有必要理清思路，大局观的方向先找准，细枝末节是后话。考虑每次做项目时做好思维导图把握方向。
@@ -1125,7 +977,6 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 - 类比: 将合宙模块理解为 usb 接电脑，设备管理器会多出一个网卡，且使用该网卡上网。
 - 困难点: uart 如何与模块进行网络信息的交换。可能需要移植网卡驱动？
 - 备选: 最后才考虑使用 AT 指令和模块通信，因为 AT 指令字段解析很复杂，但凡涉及字符串的拼接，需要判断的层面就很多。。。 除非做一个中间层，AT在芯片内部消化掉，自动适配不同的上网模块( 工程量巨大 )。
-- 
 
 
 
@@ -1137,13 +988,27 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
 
 
 
-# TODO:
+# TODO: 2024.5.24
 
-#### 五一回来：测试 SDK 稳定性。
+1. 测试 RNDIS 稳定性。
 
-1. 测试 SD 卡的读写。
+2. D213X 外挂 4G 模块 ( 7608 or 724)，通过 AT 口向模块发送 AT 指令。
 
-   多线程读写导致的文件打开冲突，应该使用互斥量机制来避免
+   原因: 因为模块接入到不同的网卡需要配置 APN ，内网卡和外网卡需要重新配置 APN。能发送 AT 指令即可。
+
+3. 使用 C or C# 写 windows USB 驱动，大概率是和 Linux 开发板上配置的 VID 和 PID 进行绑定，这部分我考虑使用 C++ 来编写。
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1158,7 +1023,7 @@ TODO: 目前只是验证了它可行，后续还要屏蔽它的 usb 驱动，直
    
    9+5 = 14.30  6.30 + 14.30 == 9:00结束
    
-   # 使用下方命令行 
+   # 使用下方命令行 查看当前文件夹的文件个数
    ls -l | grep "^-" | wc -l
    
    ```

@@ -16,8 +16,6 @@
 
 
 
-
-
 > reference
 
 1. [知乎总览参考地址](https://zhuanlan.zhihu.com/p/387939051)
@@ -31,8 +29,6 @@
    tip: 比较详尽的移植到 ARM 开发板的教程。主要看它编译 openssh、以及安装、修改passwd、生成密钥的部分。
 
 3. [报错 PC 连接时报错Connection reset by peer](https://bbs.archlinux.org/viewtopic.php?id=234837)
-
-   
 
    ```bash
    root@lan-server:~# ssh root@192.168.2.215
@@ -414,18 +410,27 @@
 
 - 存储空间不够用，移动 ./bin/ 里的文件会导致系统崩溃
 
+  造成严重后果，内核会出现异常，要重刷固件。
+
   解决办法: ./bin/ 里的文件一部分一部分地移动。
 
 
 
 > 编译后的文件太大，使用 riscv64-unknown-linux-gnu-strip 进行瘦身。
 
-```react
+```bash
 # 直接针对文件瘦身， 
 root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-linux-gnu-strip sshd
+
+# 后续在打包好的文件内进行瘦身。
+root@lan-server:~/RISC-V/linux-sdk/port_lib/output_ssh# riscv64-unknown-linux-gnu-strip ./bin/*
+root@lan-server:~/RISC-V/linux-sdk/port_lib/output_ssh# riscv64-unknown-linux-gnu-strip ./etc/*
+....
 ```
 
+效果：从 20M 大小瘦身成 4.2M.
 
+![image-20240520114311531](https://dearliao.oss-cn-shenzhen.aliyuncs.com/Note/picture/202405201144335.png)
 
 
 
@@ -448,6 +453,10 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 [参考教程](https://www.51cto.com/article/606669.html)
 
 [参考教程2](https://www.cnblogs.com/binarylei/p/9201975.html)
+
+> 该部分可以直接查看 3. 
+>
+> 其中 ChrootDirectory xxxx 就是限制访问路径，并以该路径为 sftp 的根路径
 
 
 
@@ -508,17 +517,132 @@ root@lan-server:~/RISC-V/linux-sdk/port_lib/ssh/openssh-9.7p1# riscv64-unknown-l
 
 
 
-BUG1
+#### ---- 临时测试 用后删 ----
 
 ```bash
-解压riscv64-ssh.tar.gz 然后删除压缩包
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
 
-# 先执行 创建目录，
-然后 mv /bin* /usr/local/bin/
-后面再 mv 时就发现无此命令。
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
+mkdir configs/c.1
+
+mkdir functions/acm.GS2
+
+mkdir strings/0x409
+mkdir configs/c.1/strings/0x409
+
+echo "0x0525" > idVendor
+echo "0xa4a0" > idProduct
+
+echo "0123456789" > strings/0x409/serialnumber
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "dearl usb" > strings/0x409/product
+
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
 
 
-# 推测可能是包太大，把内存搞崩了？？
+
+ln -s functions/acm.GS2 configs/c.1
+
+echo 10200000.udc > UDC
+```
+
+
+
+
+
+```bash
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
+mkdir configs/c.1
+mkdir functions/Loopback.0
+mkdir functions/SourceSink.0
+
+mkdir strings/0x409
+mkdir configs/c.1/strings/0x409
+
+echo "0x0525" > idVendor
+echo "0xa4a0" > idProduct
+
+echo "0123456789" > strings/0x409/serialnumber
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "dearL Gadget" > strings/0x409/product
+
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
+ln -s functions/Loopback.0 configs/c.1
+ln -s functions/SourceSink.0 configs/c.1
+
+echo 10200000.udc > UDC
+```
+
+
+
+
+
+
+
+
+
+
+
+---
+
+> 测试多个 USB
+
+```bash
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
+mkdir configs/c.1
+mkdir configs/c.2
+mkdir functions/Loopback.0
+mkdir functions/SourceSink.0
+
+mkdir strings/0x409
+mkdir configs/c.1/strings/0x409
+
+echo "0123456789" > strings/0x409/serialnumber
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "dearl usb" > strings/0x409/product
+
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+echo "Conf 2" > configs/c.2/strings/0x409/configuration
+echo 120 > configs/c.2/MaxPower
+
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
+// 二者选其一。
+ln -s functions/Loopback.0 configs/c.2
+ln -s functions/SourceSink.0 configs/c.1
+
+echo `ls /sys/class/udc` > UDC
 
 
 
@@ -526,4 +650,133 @@ BUG1
 
 
 
+
+
+
+
+```bash
+#文档初始配置 (如此执行，会显示Test_Name 和 loop input to output 这2个设备)
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
+mkdir configs/c.1
+
+mkdir functions/Loopback.0
+mkdir functions/SourceSink.0
+mkdir functions/acm.GS0
+
+mkdir strings/0x409
+mkdir configs/c.1/strings/0x409
+
+echo "0x0525" > idVendor
+echo "0xa4a0" > idProduct
+
+echo "0123456789" > strings/0x409/serialnumber
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "Test_Name" > strings/0x409/product
+
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
+ln -s functions/Loopback.0 configs/c.1
+ln -s functions/SourceSink.0 configs/c.1
+
+echo `ls /sys/class/udc` > UDC
+```
+
+
+
+```bash
+# 一个 USB 口虚拟 2个 ACM 串口
+
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+
+mkdir g2
+cd g2
+
+echo "0x04e8" > idVendor
+echo "0x2d01" > idProduct
+
+mkdir configs/c.1
+
+mkdir functions/acm.GS0
+mkdir functions/acm.GS1
+
+mkdir strings/0x409
+mkdir configs/c.1/strings/0x409
+
+echo "0123456789" > strings/0x409/serialnumber
+echo "Samsung Inc." > strings/0x409/manufacturer
+echo "dearl usb" > strings/0x409/product
+
+echo "Conf 1" > configs/c.1/strings/0x409/configuration
+echo 120 > configs/c.1/MaxPower
+
+// SourceSink：驱动 set configuration 会选取 第一个 configuration
+
+ln -s functions/acm.GS0 configs/c.1
+ln -s functions/acm.GS1 configs/c.1
+
+echo 10200000.udc > UDC
+```
+
+
+
+
+
+
+
+
+
+#### --- 临时添加笔记： USB 虚拟串口驱动
+
+- 生成驱动的命令行如上，
+- 但是根据上方的驱动的方式，无法修改 Windows 设备管理器的名称，翻烂了谷歌都未能找到方案。包括使用英文搜索
+- chatGPT 给出的回复修改 f_acm.c 的内核驱动代码。目前暂时还不能搞定这一块。
+- 但： 思路 -> 内核中启动 g_serial 模块，设备插入电脑，会显示带名称的虚拟串口驱动，可以根据这个来试试。`  <*> Serial Gadget (with CDC ACM and CDC OBEX support) ` ，算了，此路不通。还是生成的没有名字的串口驱动。
+
+
+
+TODO:// 明天看看修改  f_acm.c 中其它部分的源码看看能不能找到去哪里修改usb虚拟串口驱动的方式
+
+// 修改 f_acm.c 部分无效
+
+
+
+
+
+```bash
+mount -t configfs none /sys/kernel/config
+cd /sys/kernel/config/usb_gadget
+
+
+mkdir -p /sys/kernel/config/usb_gadget/g1
+cd /sys/kernel/config/usb_gadget/g1
+
+echo "0x1d6b" > idVendor
+echo "0x0104" > idProduct
+
+mkdir -p strings/0x409
+echo "0123456789" > strings/0x409/serialnumber
+echo "Custom Manufacturer" > strings/0x409/manufacturer
+echo "Custom Serial Device" > strings/0x409/product
+
+mkdir -p configs/c.1/strings/0x409
+echo "Configuration 1" > configs/c.1/strings/0x409/configuration
+
+mkdir -p functions/acm.usb0
+ln -s functions/acm.usb0 configs/c.1
+
+ls /sys/class/udc > UDC
+
+```
 
